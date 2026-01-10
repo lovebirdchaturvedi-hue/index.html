@@ -1,851 +1,408 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { 
-  Building2, Phone, Mail, MapPin, CheckCircle, X, Zap, Lock, Globe, Plus, 
-  Trash2, LayoutDashboard, LogIn, UserPlus, ShieldCheck, Copy, Check, 
-  AtSign, Settings, ExternalLink, Filter, Search, BarChart3, ChevronRight, 
-  Menu, FileText, HelpCircle, ArrowRightLeft, CreditCard, MessageCircle
-} from 'lucide-react';
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>APD Global Trade | Institutional B2B Export Terminal</title>
+    
+    <!-- Frameworks -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 
-// ==========================================
-// CONFIGURATION & SECURITY
-const ADMIN_PIN = "1818";
-const APP_ID = "apd-global-hub-v1";
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #FDFDFD; color: #0F172A; }
+        .glass-header { background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(20px); border-bottom: 1px solid rgba(0,0,0,0.05); }
+        .hero-gradient { background: radial-gradient(circle at top right, #ecfdf5, transparent), radial-gradient(circle at bottom left, #f8fafc, transparent); }
+        .trade-card { transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .trade-card:hover { transform: translateY(-8px) scale(1.02); box-shadow: 0 25px 50px -12px rgba(16, 185, 129, 0.1); }
+        .admin-gradient { background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); }
+        
+        /* WhatsApp Pulse Effect */
+        .whatsapp-float {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            z-index: 999;
+            background-color: #25d366;
+            color: white;
+            border-radius: 50px;
+            padding: 12px 24px;
+            box-shadow: 0 10px 25px rgba(37, 211, 102, 0.3);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 800;
+            text-transform: uppercase;
+            font-size: 12px;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+        }
+        .whatsapp-float:hover { transform: scale(1.1); background-color: #128c7e; }
+        
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
 
-const OFFICE_ADDRESSES = [
-  { country: "India", address: "Trade Tower, Level 14, New Delhi, India" },
-  { country: "UAE", address: "Business Bay, Executive Tower, Dubai, UAE" },
-  { country: "USA", address: "1200 Avenue of the Americas, New York, NY, USA" },
-  { country: "China", address: "Guangzhou International Finance Center, Guangzhou, China" }
-];
+    <script type="text/babel">
+        const { useState, useEffect } = React;
 
-const AGRI_PRODUCTS = ["Icumsa 45 Sugar", "Sunflower Oil", "Palm Oil", "1121 Creamy Sella Basmati", "IR 64 Rice", "IR 64 Parboiled", "Pulses & Lentils", "Wheat Grade A"];
-const COUNTRIES = ["Egypt", "Turkey", "Saudi Arabia", "Vietnam", "Netherlands", "Nigeria", "Mexico", "Canada", "Thailand"];
+        const ADMIN_PIN = "1818";
+        const RAZORPAY_KEY = "rzp_test_demo"; 
+        const WHATSAPP_LINK = "https://wa.me/919266418868";
+        const FB_LINK = "https://www.facebook.com/share/1CtwjV4rXG/";
 
-// ==========================================
+        // Data Generation for 100+ Enquiries
+        const generateLeads = () => {
+            const agri = [
+                "ICUMSA 45 Sugar", "Refined Sunflower Oil", "Crude Palm Oil", "1121 Creamy Sella Basmati", 
+                "IR 64 Parboiled Rice", "IR 64 Raw Rice", "Non-Basmati Long Grain", "Yellow Corn (Maize)", 
+                "Red Lentils", "Soybean (Non-GMO)", "Chickpeas (Kabuli)", "Wheat Grade 1"
+            ];
+            const industrial = ["Copper Cathodes", "Aluminum Ingots", "Urea 46% (Prilled)", "Solar Panels (Tier 1)", "Lithium-ion Cells", "Bitumen VG30"];
+            const origins = ["United States", "UAE", "China", "Saudi Arabia", "Vietnam", "Turkey", "Egypt", "Nigeria", "Brazil", "Germany"];
+            
+            let temp = [];
+            for(let i=1; i<=105; i++) {
+                const isAgri = i <= 84; 
+                const product = isAgri ? agri[Math.floor(Math.random()*agri.length)] : industrial[Math.floor(Math.random()*industrial.length)];
+                temp.push({
+                    id: `RFQ-${10000 + i}`,
+                    product,
+                    qty: `${Math.floor(Math.random() * 99) + 1} Containers`,
+                    origin: origins[Math.floor(Math.random()*origins.length)],
+                    type: isAgri ? 'Agriculture' : 'Industrial',
+                    status: 'Active',
+                    date: 'Live Now'
+                });
+            }
+            return temp;
+        };
 
-export default function App() {
-  const [view, setView] = useState('landing'); // landing, leads, admin, terms, rfq, contact
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [showLogin, setShowLogin] = useState(false);
-  const [pinInput, setPinInput] = useState("");
-  const [currency, setCurrency] = useState('USD'); // USD or INR
-  const [activeTab, setActiveTab] = useState('all');
+        const App = () => {
+            const [view, setView] = useState('home');
+            const [leads, setLeads] = useState(generateLeads());
+            const [currency, setCurrency] = useState('USD');
+            const [showAdminLogin, setShowAdminLogin] = useState(false);
+            const [isAdmin, setIsAdmin] = useState(false);
+            const [pin, setPin] = useState("");
 
-  // --- DATABASE STATE ---
-  // Initial 100+ Enquiries Generation Logic
-  const [enquiries, setEnquiries] = useState(() => {
-    const initial = [];
-    for (let i = 1; i <= 100; i++) {
-      const isAgri = i <= 80;
-      const product = isAgri 
-        ? AGRI_PRODUCTS[Math.floor(Math.random() * AGRI_PRODUCTS.length)]
-        : "Industrial Chemicals, Spare Parts, Textiles, Solar Panels, Machinery"[Math.floor(Math.random() * 5)];
-      
-      initial.push({
-        id: `RFQ-${1000 + i}`,
-        product,
-        qty: `${Math.floor(Math.random() * 100) + 1} Containers`,
-        country: COUNTRIES[Math.floor(Math.random() * COUNTRIES.length)],
-        buyerType: "Verified Entity",
-        date: "2024-06-" + (Math.floor(Math.random() * 30) + 1).toString().padStart(2, '0'),
-        type: isAgri ? 'agri' : 'other',
-        isLucrative: Math.random() > 0.8
-      });
-    }
-    return initial;
-  });
+            const pricing = {
+                USD: [
+                    { name: 'Basic Plan', price: 250, original: 500, features: ['Unlimited Buyer Chats', 'Verified Supplier Badge', 'Trade Dashboard Access', 'Direct Platform Support'] },
+                    { name: 'Golden Plan', price: 500, original: 1000, features: ['All Basic Features', 'View Direct Contact Info', 'WhatsApp Direct Access', 'Priority Ranking in Search'] },
+                    { name: 'Platinum Plan', price: 1000, original: 2000, features: ['Full Global Dossier', 'Access to LOI & BCL Docs', 'Dedicated Trade Manager', 'Exclusive Premium Enquiries'] }
+                ],
+                INR: [
+                    { name: 'Basic Plan', price: 25000, original: 50000, features: ['Unlimited Buyer Chats', 'Verified Supplier Badge', 'Trade Dashboard Access', 'Direct Platform Support'] },
+                    { name: 'Golden Plan', price: 50000, original: 100000, features: ['All Basic Features', 'View Direct Contact Info', 'WhatsApp Direct Access', 'Priority Ranking in Search'] },
+                    { name: 'Platinum Plan', price: 100000, original: 200000, features: ['Full Global Dossier', 'Access to LOI & BCL Docs', 'Dedicated Trade Manager', 'Exclusive Premium Enquiries'] }
+                ]
+            };
 
-  const plans = {
-    USD: [
-      { name: "Basic Plan", price: 250, original: 500, features: ["Chat with Buyers", "Verified Badge", "Email Support"] },
-      { name: "Golden Plan", price: 500, original: 1000, features: ["View Contact Info", "Direct Chat", "Priority Listing", "WhatsApp Access"] },
-      { name: "Platinum Plan", price: 1000, original: 2000, features: ["Full Buyer Dossier", "View LOI/PO Documents", "Account Manager", "Unlimited Access"] }
-    ],
-    INR: [
-      { name: "Basic Plan", price: 25000, original: 50000, features: ["Chat with Buyers", "Verified Badge", "Email Support"] },
-      { name: "Golden Plan", price: 50000, original: 100000, features: ["View Contact Info", "Direct Chat", "Priority Listing", "WhatsApp Access"] },
-      { name: "Platinum Plan", price: 100000, original: 200000, features: ["Full Buyer Dossier", "View LOI/PO Documents", "Account Manager", "Unlimited Access"] }
-    ]
-  };
+            const handlePayment = (plan) => {
+                const options = {
+                    key: RAZORPAY_KEY,
+                    amount: plan.price * 100,
+                    currency: currency,
+                    name: "APD GLOBAL TRADE",
+                    description: `Subscription: ${plan.name}`,
+                    handler: (res) => alert("Payment Successful! Tracking ID: " + res.razorpay_payment_id),
+                    theme: { color: "#10b981" }
+                };
+                const rzp = new window.Razorpay(options);
+                rzp.open();
+            };
 
-  const filteredEnquiries = useMemo(() => {
-    if (activeTab === 'all') return enquiries;
-    return enquiries.filter(e => e.type === activeTab);
-  }, [activeTab, enquiries]);
+            const loginAdmin = () => {
+                if(pin === ADMIN_PIN) {
+                    setIsAdmin(true);
+                    setShowAdminLogin(false);
+                    setView('admin');
+                } else {
+                    alert("Unauthorized access attempt.");
+                }
+                setPin("");
+            };
 
-  const handleLogin = () => {
-    if (pinInput === ADMIN_PIN) {
-      setIsAdmin(true); setShowLogin(false); setPinInput(""); setView('admin');
-    } else { alert("ACCESS DENIED"); setPinInput(""); }
-  };
+            useEffect(() => { lucide.createIcons(); }, [view, showAdminLogin]);
 
-  const handlePayment = (planName, amount) => {
-    const options = {
-      key: "rzp_test_YOUR_KEY", // Replace with your live key
-      amount: amount * 100,
-      currency: currency,
-      name: "APD Global Hub",
-      description: `${planName} Subscription`,
-      handler: function(response) {
-        alert("Payment Successful. Access Granted.");
-      },
-      prefill: { email: "user@example.com", contact: "9999999999" },
-      theme: { color: "#059669" }
-    };
-    const rzp1 = new window.Razorpay(options);
-    rzp1.open();
-  };
+            return (
+                <div className="min-h-screen flex flex-col">
+                    {/* Floating WhatsApp */}
+                    <a href={WHATSAPP_LINK} target="_blank" className="whatsapp-float">
+                        <i data-lucide="phone-call" className="w-5 h-5"></i>
+                        <span>Contact on WhatsApp</span>
+                    </a>
 
-  return (
-    <div className="min-h-screen bg-[#F8FAFC] font-sans text-slate-900 overflow-x-hidden">
-      {/* --- PREMIUM NAVIGATION --- */}
-      <nav className="sticky top-0 z-[60] bg-white/90 backdrop-blur-xl border-b border-slate-200 h-20 px-4 md:px-8">
-        <div className="max-w-screen-2xl mx-auto h-full flex justify-between items-center">
-          <div className="flex items-center gap-6">
-            <div className="flex items-center gap-2 cursor-pointer" onClick={() => setView('landing')}>
-              <div className="bg-emerald-600 p-2 rounded-xl text-white shadow-lg shadow-emerald-200"><Globe size={24} /></div>
-              <div className="leading-none">
-                <span className="text-xl font-black tracking-tighter uppercase italic block">APD GLOBAL</span>
-                <span className="text-[8px] font-bold text-emerald-600 uppercase tracking-widest">Trade Hub Terminal</span>
-              </div>
-            </div>
-            <div className="hidden lg:flex items-center gap-8 ml-10">
-              <button onClick={() => setView('leads')} className="text-[10px] font-black uppercase tracking-[0.2em] hover:text-emerald-600 transition-colors">Trade Board</button>
-              <button onClick={() => setView('rfq')} className="text-[10px] font-black uppercase tracking-[0.2em] hover:text-emerald-600 transition-colors">Post RFQ</button>
-              <button onClick={() => setView('contact')} className="text-[10px] font-black uppercase tracking-[0.2em] hover:text-emerald-600 transition-colors">Global Offices</button>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-4">
-            <select 
-              className="bg-slate-100 border-none rounded-lg text-[10px] font-black px-3 py-1.5 outline-none cursor-pointer"
-              value={currency}
-              onChange={(e) => setCurrency(e.target.value)}
-            >
-              <option value="USD">USD ($)</option>
-              <option value="INR">INR (₹)</option>
-            </select>
-            <button 
-              onClick={() => isAdmin ? setView('admin') : setShowLogin(true)}
-              className="flex items-center gap-2 bg-slate-900 text-white px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-emerald-600 transition-all shadow-xl shadow-slate-200"
-            >
-              {isAdmin ? <LayoutDashboard size={14} /> : <LogIn size={14} />}
-              {isAdmin ? "Admin Control" : "Login"}
-            </button>
-          </div>
-        </div>
-      </nav>
-
-      <main>
-        {/* --- LANDING VIEW --- */}
-        {view === 'landing' && (
-          <div className="animate-in fade-in duration-700">
-            {/* HERO */}
-            <section className="relative pt-24 pb-32 px-6 overflow-hidden">
-              <div className="absolute top-0 right-0 -z-10 w-1/2 h-full bg-emerald-50 opacity-50 blur-3xl rounded-full translate-x-1/2 -translate-y-1/2"></div>
-              <div className="max-w-screen-xl mx-auto text-center">
-                <div className="inline-flex items-center gap-2 bg-white px-4 py-2 rounded-full border border-slate-200 mb-8 shadow-sm">
-                  <span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></span>
-                  <span className="text-[9px] font-black uppercase tracking-widest text-slate-500">Global B2B Marketplace • 500+ Verified Suppliers</span>
-                </div>
-                <h1 className="text-6xl md:text-9xl font-black tracking-tighter uppercase italic leading-[0.85] mb-8">
-                  TRADE WITHOUT <br /> <span className="text-emerald-600">BROKERS.</span>
-                </h1>
-                <p className="max-w-2xl mx-auto text-slate-500 font-medium text-lg mb-12">
-                  Direct institutional trade terminal for Agricultural and Industrial commodities. Connect directly with global buyers. No middlemen, no hidden commissions.
-                </p>
-                <div className="flex flex-col sm:flex-row justify-center gap-4">
-                  <button onClick={() => setView('leads')} className="px-10 py-5 bg-emerald-600 text-white rounded-2xl font-black uppercase tracking-widest hover:scale-105 transition-all shadow-2xl shadow-emerald-200 flex items-center justify-center gap-3">
-                    View Buyer Leads <ChevronRight size={18}/>
-                  </button>
-                  <button onClick={() => setView('rfq')} className="px-10 py-5 bg-white text-slate-900 border border-slate-200 rounded-2xl font-black uppercase tracking-widest hover:bg-slate-50 transition-all shadow-xl shadow-slate-100 flex items-center justify-center gap-3">
-                    Post My Requirement
-                  </button>
-                </div>
-              </div>
-            </section>
-
-            {/* TRUSTED BY LOGOS PLACEHOLDER */}
-            <section className="py-20 bg-white border-y border-slate-100">
-               <div className="max-w-screen-xl mx-auto px-6 grid grid-cols-2 md:grid-cols-4 gap-12 opacity-30 grayscale items-center">
-                 <div className="text-3xl font-black uppercase italic">CommodityNet</div>
-                 <div className="text-3xl font-black uppercase italic">TradeNode</div>
-                 <div className="text-3xl font-black uppercase italic">AgriChain</div>
-                 <div className="text-3xl font-black uppercase italic">InduSupply</div>
-               </div>
-            </section>
-          </div>
-        )}
-
-        {/* --- TRADE BOARD (LEADS) --- */}
-        {(view === 'leads' || view === 'landing') && view !== 'admin' && (
-          <div className="max-w-screen-xl mx-auto py-20 px-6">
-            <div className="flex flex-col md:flex-row justify-between items-end gap-6 mb-12">
-              <div>
-                <h2 className="text-4xl font-black uppercase italic tracking-tighter mb-2">Live Trade Board</h2>
-                <p className="text-slate-400 font-bold uppercase tracking-widest text-[9px]">Real-time Global Demand Index</p>
-              </div>
-              <div className="flex bg-white p-1 rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-                {['all', 'agri', 'other'].map(tab => (
-                  <button 
-                    key={tab}
-                    onClick={() => setActiveTab(tab)}
-                    className={`px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === tab ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-200' : 'text-slate-400 hover:bg-slate-50'}`}
-                  >
-                    {tab}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredEnquiries.map((e, idx) => (
-                <div key={idx} className="bg-white rounded-[2.5rem] p-8 border border-slate-100 shadow-xl shadow-slate-200/50 hover:translate-y-[-5px] transition-all group relative overflow-hidden">
-                  {e.isLucrative && (
-                    <div className="absolute top-0 right-0 bg-amber-400 text-white px-4 py-1.5 rounded-bl-2xl text-[8px] font-black uppercase tracking-widest animate-pulse">
-                      High Value Lead
-                    </div>
-                  )}
-                  <div className="flex items-center gap-3 mb-6">
-                    <div className="bg-slate-50 p-3 rounded-2xl text-emerald-600 group-hover:bg-emerald-600 group-hover:text-white transition-colors">
-                      <Zap size={20} />
-                    </div>
-                    <div>
-                      <span className="text-[10px] font-black text-slate-300 uppercase block tracking-widest">{e.id}</span>
-                      <span className="text-[10px] font-black text-emerald-600 uppercase flex items-center gap-1"><MapPin size={10}/> {e.country}</span>
-                    </div>
-                  </div>
-                  <h3 className="text-xl font-black uppercase tracking-tight mb-4 group-hover:text-emerald-600 transition-colors leading-tight">
-                    {e.product}
-                  </h3>
-                  <div className="flex justify-between items-end pt-6 border-t border-slate-50">
-                    <div>
-                      <p className="text-2xl font-black italic tracking-tighter text-slate-900">{e.qty}</p>
-                      <p className="text-[9px] font-black uppercase text-slate-400 tracking-widest">Target Volume</p>
-                    </div>
-                    <button onClick={() => setView('pricing')} className="px-5 py-2.5 bg-slate-900 text-white rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-emerald-600 transition-all">
-                      Access Info
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* --- PRICING TIER VIEW --- */}
-        {view === 'pricing' && (
-          <div className="max-w-screen-xl mx-auto py-24 px-6 animate-in fade-in">
-             <div className="text-center mb-20">
-                <h2 className="text-5xl md:text-7xl font-black uppercase italic tracking-tighter mb-4 underline decoration-emerald-500/30">Select Access Level</h2>
-                <div className="inline-block bg-emerald-100 text-emerald-700 px-6 py-2 rounded-full text-[10px] font-black uppercase tracking-widest">
-                  Special Promotion: 50% Flat Discount Applied
-                </div>
-             </div>
-
-             <div className="grid md:grid-cols-3 gap-8">
-               {plans[currency].map((plan, idx) => (
-                 <div key={idx} className={`relative bg-white rounded-[3.5rem] p-12 border border-slate-100 shadow-2xl transition-all ${idx === 1 ? 'scale-105 border-emerald-500 ring-4 ring-emerald-500/10 z-10' : ''}`}>
-                    {idx === 1 && <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-emerald-500 text-white px-6 py-2 rounded-full text-[10px] font-black uppercase tracking-widest">Most Popular</div>}
-                    <h4 className="text-3xl font-black uppercase italic tracking-tighter mb-2">{plan.name}</h4>
-                    <div className="mb-8">
-                      <span className="text-slate-300 line-through font-bold text-xl mr-2">{currency === 'USD' ? '$' : '₹'}{plan.original.toLocaleString()}</span>
-                      <span className="text-5xl font-black text-emerald-600 tracking-tighter">{currency === 'USD' ? '$' : '₹'}{plan.price.toLocaleString()}</span>
-                      <span className="text-[10px] font-bold text-slate-400 block uppercase tracking-widest mt-1">Single Activation Fee</span>
-                    </div>
-                    <ul className="space-y-4 mb-12">
-                      {plan.features.map((f, i) => (
-                        <li key={i} className="flex items-center gap-3 text-[10px] font-bold uppercase text-slate-600 tracking-widest">
-                          <CheckCircle size={16} className="text-emerald-500" /> {f}
-                        </li>
-                      ))}
-                    </ul>
-                    <button 
-                      onClick={() => handlePayment(plan.name, plan.price)}
-                      className="w-full py-5 bg-slate-900 text-white rounded-[2rem] text-[11px] font-black uppercase tracking-widest hover:bg-emerald-600 transition-all shadow-xl shadow-slate-200"
-                    >
-                      Activate {plan.name}
-                    </button>
-                 </div>
-               ))}
-             </div>
-          </div>
-        )}
-
-        {/* --- RFQ POSTING VIEW --- */}
-        {view === 'rfq' && (
-          <div className="max-w-3xl mx-auto py-24 px-6 animate-in zoom-in-95">
-             <div className="bg-white p-12 md:p-16 rounded-[4rem] border border-slate-100 shadow-2xl shadow-slate-200/50">
-               <h2 className="text-4xl font-black italic uppercase tracking-tighter mb-2">Post Your Requirement</h2>
-               <p className="text-slate-400 font-bold uppercase tracking-widest text-[9px] mb-12">Buyers connect for free. No supplier visibility to others.</p>
-               <div className="space-y-6">
-                 <div className="grid md:grid-cols-2 gap-6">
-                    <div className="space-y-2">
-                      <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-4">Product Name</label>
-                      <input placeholder="E.G. ICUMSA 45 SUGAR" className="w-full p-5 bg-slate-50 border-none rounded-2xl font-bold uppercase text-xs focus:ring-2 ring-emerald-500 outline-none" />
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-4">Quantity Required</label>
-                      <input placeholder="E.G. 100 CONTAINERS" className="w-full p-5 bg-slate-50 border-none rounded-2xl font-bold uppercase text-xs focus:ring-2 ring-emerald-500 outline-none" />
-                    </div>
-                 </div>
-                 <div className="grid md:grid-cols-2 gap-6">
-                    <div className="space-y-2">
-                      <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-4">Target Destination</label>
-                      <input placeholder="COUNTRY" className="w-full p-5 bg-slate-50 border-none rounded-2xl font-bold uppercase text-xs focus:ring-2 ring-emerald-500 outline-none" />
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-4">Your Full Name</label>
-                      <input placeholder="ENTER NAME" className="w-full p-5 bg-slate-50 border-none rounded-2xl font-bold uppercase text-xs focus:ring-2 ring-emerald-500 outline-none" />
-                    </div>
-                 </div>
-                 <div className="space-y-2">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-4">Specifications & Details</label>
-                    <textarea rows="4" placeholder="DESCRIBE YOUR QUALITY REQUIREMENTS, CERTIFICATIONS, ETC." className="w-full p-5 bg-slate-50 border-none rounded-2xl font-bold uppercase text-xs focus:ring-2 ring-emerald-500 outline-none resize-none"></textarea>
-                 </div>
-                 <button onClick={() => alert("RFQ Published. Verified suppliers will be notified.")} className="w-full py-6 bg-emerald-600 text-white rounded-[2rem] font-black uppercase text-[11px] tracking-widest shadow-2xl shadow-emerald-200">Broadcast Requirement</button>
-               </div>
-             </div>
-          </div>
-        )}
-
-        {/* --- ADMIN VIEW --- */}
-        {view === 'admin' && isAdmin && (
-           <div className="max-w-screen-2xl mx-auto py-12 px-6 animate-in fade-in">
-              <div className="flex flex-col lg:flex-row gap-12">
-                 <div className="lg:w-1/3">
-                    <div className="bg-white p-10 rounded-[3rem] border border-slate-100 shadow-xl sticky top-28">
-                       <h3 className="text-xl font-black uppercase italic mb-8">Admin Dashboard</h3>
-                       <div className="space-y-4">
-                          <button onClick={() => setAdminTab('leads')} className={`w-full p-4 rounded-xl text-[10px] font-black uppercase tracking-widest text-left flex items-center gap-3 ${adminTab === 'leads' ? 'bg-emerald-600 text-white' : 'hover:bg-slate-50'}`}>
-                             <Zap size={16}/> Inject New Leads
-                          </button>
-                          <button onClick={() => setAdminTab('suppliers')} className={`w-full p-4 rounded-xl text-[10px] font-black uppercase tracking-widest text-left flex items-center gap-3 ${adminTab === 'suppliers' ? 'bg-emerald-600 text-white' : 'hover:bg-slate-50'}`}>
-                             <UserPlus size={16}/> Manage Suppliers
-                          </button>
-                          <button onClick={() => {setIsAdmin(false); setView('landing');}} className="w-full p-4 rounded-xl text-[10px] font-black uppercase tracking-widest text-left flex items-center gap-3 text-red-500 hover:bg-red-50">
-                             <X size={16}/> Terminate Session
-                          </button>
-                       </div>
-                    </div>
-                 </div>
-
-                 <div className="lg:w-2/3">
-                    {adminTab === 'leads' && (
-                      <div className="bg-white p-12 rounded-[4rem] border border-slate-100 shadow-xl">
-                         <h2 className="text-3xl font-black uppercase italic tracking-tighter mb-8">Lead Injection Terminal</h2>
-                         <div className="space-y-6">
-                            <div className="grid grid-cols-2 gap-6">
-                               <input id="p_name" placeholder="PRODUCT NAME" className="p-5 bg-slate-50 rounded-2xl border-none outline-none font-black text-[10px] uppercase" />
-                               <input id="p_qty" placeholder="QUANTITY" className="p-5 bg-slate-50 rounded-2xl border-none outline-none font-black text-[10px] uppercase" />
+                    {/* NAV */}
+                    <nav className="fixed w-full z-50 glass-header py-4 px-6">
+                        <div className="max-w-7xl mx-auto flex justify-between items-center">
+                            <div className="flex items-center gap-2 cursor-pointer" onClick={() => setView('home')}>
+                                <div className="bg-emerald-600 text-white p-2 rounded-xl"><i data-lucide="globe" className="w-5 h-5"></i></div>
+                                <div className="leading-none">
+                                    <h1 className="text-xl font-black italic tracking-tighter text-slate-900 uppercase">APD Global</h1>
+                                    <p className="text-[8px] font-bold text-slate-400 tracking-widest uppercase">Trade Terminal</p>
+                                </div>
                             </div>
-                            <input id="p_country" placeholder="BUYER COUNTRY" className="w-full p-5 bg-slate-50 rounded-2xl border-none outline-none font-black text-[10px] uppercase" />
-                            <button 
-                              onClick={() => {
-                                const n = document.getElementById('p_name').value;
-                                const q = document.getElementById('p_qty').value;
-                                const c = document.getElementById('p_country').value;
-                                if(!n || !q || !c) return;
-                                setEnquiries([{id: `RFQ-${Date.now().toString().slice(-4)}`, product: n, qty: q, country: c, type: 'agri'}, ...enquiries]);
-                                alert("Broadcast Live");
-                              }}
-                              className="w-full py-5 bg-slate-900 text-white rounded-[2rem] font-black uppercase text-[10px] tracking-widest shadow-xl"
-                            >
-                              Push Live Broadcast
+                            <div className="hidden md:flex gap-8 items-center text-[10px] font-black uppercase tracking-widest text-slate-500">
+                                <button onClick={() => setView('leads')} className="hover:text-emerald-600">Explore Market</button>
+                                <button onClick={() => setView('pricing')} className="hover:text-emerald-600">Pricing</button>
+                                <button onClick={() => setView('contact')} className="hover:text-emerald-600">Contact</button>
+                                <div className="flex bg-slate-100 p-1 rounded-lg">
+                                    <button onClick={() => setCurrency('USD')} className={`px-3 py-1 rounded-md ${currency === 'USD' ? 'bg-white shadow text-slate-900' : ''}`}>USD</button>
+                                    <button onClick={() => setCurrency('INR')} className={`px-3 py-1 rounded-md ${currency === 'INR' ? 'bg-white shadow text-slate-900' : ''}`}>INR</button>
+                                </div>
+                            </div>
+                            <button onClick={() => isAdmin ? setView('admin') : setShowAdminLogin(true)} className="bg-slate-900 text-white px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-emerald-600">
+                                {isAdmin ? 'Console' : 'Supplier Login'}
                             </button>
-                         </div>
-                      </div>
-                    )}
-                    {adminTab === 'suppliers' && (
-                      <div className="bg-slate-900 p-12 rounded-[4rem] text-white shadow-xl">
-                        <h2 className="text-3xl font-black uppercase italic tracking-tighter mb-8">Manual Auth Center</h2>
-                        <div className="p-8 bg-white/5 rounded-3xl border border-white/10">
-                           <p className="text-[10px] font-black uppercase tracking-widest text-white/40 mb-4">Supplier Credentials Generator</p>
-                           <input placeholder="ENTER SUPPLIER EMAIL" className="w-full p-5 bg-white/10 rounded-2xl border border-white/20 text-white mb-4 outline-none placeholder:text-white/20" />
-                           <button className="w-full py-5 bg-white text-slate-900 rounded-[2rem] font-black uppercase text-[10px]">Create & Assign Credentials</button>
                         </div>
-                      </div>
+                    </nav>
+
+                    {/* MAIN */}
+                    <div className="flex-grow pt-24 hero-gradient">
+                        {view === 'home' && <HomeView setView={setView} />}
+                        {view === 'leads' && <LeadsView leads={leads} setView={setView} />}
+                        {view === 'pricing' && <PricingView plans={pricing[currency]} currency={currency} onPay={handlePayment} />}
+                        {view === 'contact' && <ContactView />}
+                        {view === 'terms' && <TermsView />}
+                        {view === 'admin' && isAdmin && <AdminView leads={leads} setLeads={setLeads} />}
+                    </div>
+
+                    {/* FOOTER */}
+                    <footer className="bg-white border-t border-slate-100 py-16 px-6">
+                        <div className="max-w-7xl mx-auto grid md:grid-cols-4 gap-12">
+                            <div className="col-span-1">
+                                <h2 className="text-xl font-black italic mb-6 uppercase">APD GLOBAL</h2>
+                                <p className="text-xs font-medium text-slate-400 leading-relaxed mb-6">The world's most trusted B2B trade terminal for verified agriculture and industrial commodities. No brokers, just business.</p>
+                                <div className="flex gap-4">
+                                    <a href={FB_LINK} target="_blank" className="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center text-blue-600 border border-blue-100 hover:bg-blue-600 hover:text-white transition-all">
+                                        <i data-lucide="facebook" className="w-5 h-5"></i>
+                                    </a>
+                                    <a href={WHATSAPP_LINK} target="_blank" className="w-10 h-10 rounded-lg bg-emerald-50 flex items-center justify-center text-emerald-600 border border-emerald-100 hover:bg-emerald-600 hover:text-white transition-all">
+                                        <i data-lucide="phone" className="w-5 h-5"></i>
+                                    </a>
+                                </div>
+                            </div>
+                            <div>
+                                <h4 className="text-[10px] font-black uppercase tracking-widest mb-6 text-slate-900">Platform</h4>
+                                <ul className="space-y-4 text-xs font-bold text-slate-500 uppercase">
+                                    <li onClick={() => setView('leads')} className="cursor-pointer hover:text-emerald-600">Market Board</li>
+                                    <li onClick={() => setView('pricing')} className="cursor-pointer hover:text-emerald-600">Membership Plans</li>
+                                    <li onClick={() => setView('terms')} className="cursor-pointer hover:text-emerald-600">Legal Shield</li>
+                                </ul>
+                            </div>
+                            <div>
+                                <h4 className="text-[10px] font-black uppercase tracking-widest mb-6 text-slate-900">Governance</h4>
+                                <ul className="space-y-4 text-xs font-bold text-slate-500 uppercase">
+                                    <li onClick={() => setView('terms')} className="cursor-pointer hover:text-emerald-600">Terms of Use</li>
+                                    <li onClick={() => setView('terms')} className="cursor-pointer hover:text-emerald-600">Refund Policy</li>
+                                    <li onClick={() => setView('contact')} className="cursor-pointer hover:text-emerald-600">Offices</li>
+                                </ul>
+                            </div>
+                            <div className="bg-slate-50 p-8 rounded-3xl border border-slate-100 text-center">
+                                <h4 className="text-[10px] font-black uppercase tracking-widest mb-4">Official Contact</h4>
+                                <p className="text-xs font-bold text-emerald-600 mb-2">+91 92664 18868</p>
+                                <p className="text-[10px] font-bold text-slate-400 uppercase mb-4">info@apdglobaltrade.com</p>
+                                <a href={WHATSAPP_LINK} target="_blank" className="inline-block bg-white border border-slate-200 px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest hover:border-emerald-500">Quick Chat</a>
+                            </div>
+                        </div>
+                    </footer>
+
+                    {/* ADMIN LOGIN */}
+                    {showAdminLogin && (
+                        <div className="fixed inset-0 z-[100] bg-slate-900/90 backdrop-blur-md flex items-center justify-center p-4">
+                            <div className="bg-white rounded-[2.5rem] p-10 w-full max-w-sm text-center">
+                                <h3 className="text-2xl font-black italic uppercase mb-8">Access Terminal</h3>
+                                <input 
+                                    type="password" 
+                                    placeholder="••••"
+                                    className="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl p-4 text-center text-4xl font-black tracking-[0.5em] mb-6 focus:border-emerald-500 outline-none"
+                                    value={pin}
+                                    onChange={(e) => setPin(e.target.value)}
+                                    maxLength="4"
+                                />
+                                <button onClick={loginAdmin} className="w-full bg-emerald-600 text-white py-4 rounded-xl font-black uppercase text-xs tracking-widest mb-4 shadow-xl shadow-emerald-200">Authorize</button>
+                                <button onClick={() => setShowAdminLogin(false)} className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Back</button>
+                            </div>
+                        </div>
                     )}
-                 </div>
-              </div>
-           </div>
-        )}
-
-        {/* --- TERMS & CONDITIONS VIEW --- */}
-        {view === 'terms' && (
-          <div className="max-w-4xl mx-auto py-24 px-6 animate-in fade-in">
-             <div className="bg-white p-12 md:p-20 rounded-[4rem] border border-slate-100 shadow-xl prose prose-slate max-w-none">
-                <h1 className="text-5xl font-black italic uppercase tracking-tighter mb-10">Terms & Conditions</h1>
-                <div className="space-y-8 font-medium text-slate-500 leading-relaxed">
-                   <p className="bg-amber-50 p-6 border-l-4 border-amber-400 text-amber-900 font-bold uppercase text-[10px] tracking-widest">
-                     IMPORTANT: WE DO NOT GUARANTEE TO GIVE YOU ORDERS. WE PROVIDE A PLATFORM FOR DIRECT DEALS WITHOUT BROKERS. ALL PAYMENTS ARE STRICTLY NON-REFUNDABLE.
-                   </p>
-                   <div>
-                     <h3 className="text-xl font-black text-slate-900 uppercase italic">1. Introduction</h3>
-                     <p>Welcome to APD Global Hub. We are a B2B lead-generation marketplace connecting buyers and suppliers globally.</p>
-                   </div>
-                   <div>
-                     <h3 className="text-xl font-black text-slate-900 uppercase italic">2. No Guarantee Policy</h3>
-                     <p>The amount paid for any subscription plan is for platform access and lead visibility only. We do not facilitate the trade itself, nor do we guarantee that a supplier will close a deal with any listed buyer.</p>
-                   </div>
-                   <div>
-                     <h3 className="text-xl font-black text-slate-900 uppercase italic">3. Payments & Non-Refundability</h3>
-                     <p>All subscription fees paid to APD Global Hub are final and non-refundable under any circumstances. By paying, you acknowledge you are purchasing access to digital trade information.</p>
-                   </div>
-                   <p className="text-[10px] italic">Last Updated: Jan 2024 • Governing Law: Delhi, India</p>
                 </div>
-             </div>
-          </div>
-        )}
+            );
+        };
 
-        {/* --- CONTACT VIEW --- */}
-        {view === 'contact' && (
-           <div className="max-w-screen-xl mx-auto py-24 px-6 animate-in fade-in">
-              <div className="text-center mb-16">
-                 <h2 className="text-5xl md:text-7xl font-black uppercase italic tracking-tighter mb-4">Global Network</h2>
-                 <p className="text-slate-400 font-bold uppercase tracking-widest text-[9px]">4 Strategic Hubs • Worldwide Support</p>
-              </div>
-              
-              <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 mb-20">
-                 {OFFICE_ADDRESSES.map((off, i) => (
-                   <div key={i} className="bg-white p-10 rounded-[3rem] border border-slate-100 shadow-xl text-center group hover:bg-emerald-600 transition-all">
-                      <div className="bg-emerald-50 w-16 h-16 rounded-3xl flex items-center justify-center mx-auto mb-6 text-emerald-600 group-hover:bg-white transition-colors">
-                         <MapPin size={24}/>
-                      </div>
-                      <h4 className="text-xl font-black uppercase italic group-hover:text-white">{off.country}</h4>
-                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-2 group-hover:text-emerald-50">{off.address}</p>
-                   </div>
-                 ))}
-              </div>
+        const HomeView = ({ setView }) => (
+            <div className="px-6 py-24 max-w-7xl mx-auto flex flex-col items-center text-center">
+                <div className="inline-flex items-center gap-2 bg-white border border-slate-100 px-4 py-2 rounded-full mb-8 shadow-sm">
+                    <span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></span>
+                    <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Global Live Terminal • 105+ Active Leads</span>
+                </div>
+                <h1 className="text-6xl md:text-9xl font-black text-slate-900 tracking-tighter leading-[0.85] mb-8 italic uppercase">
+                    Trade. <br/> <span className="text-emerald-600 italic">Direct.</span> Verified.
+                </h1>
+                <p className="text-slate-500 max-w-2xl mx-auto text-lg font-medium mb-12">
+                    Connect with bulk Agri-Commodity buyers from UAE, China, USA, and Europe. Premium terminal for serious exporters.
+                </p>
+                <div className="flex flex-col sm:flex-row gap-4 mb-24">
+                    <button onClick={() => setView('leads')} className="bg-emerald-600 text-white px-10 py-5 rounded-2xl font-black uppercase text-xs tracking-widest shadow-2xl shadow-emerald-200">Open Terminal</button>
+                    <button onClick={() => setView('pricing')} className="bg-white text-slate-900 border border-slate-200 px-10 py-5 rounded-2xl font-black uppercase text-xs tracking-widest">Pricing</button>
+                </div>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 w-full opacity-60 grayscale hover:grayscale-0 transition-all">
+                    {["Sugar", "Oils", "Rice", "Pulses"].map(item => (
+                        <div key={item} className="bg-white py-8 rounded-3xl border border-slate-100 font-black uppercase italic text-slate-400 text-xl tracking-tighter">{item}</div>
+                    ))}
+                </div>
+            </div>
+        );
 
-              <div className="bg-slate-900 rounded-[4rem] p-12 md:p-20 text-white flex flex-col md:flex-row justify-between items-center gap-12">
-                 <div>
-                    <h3 className="text-4xl font-black uppercase italic tracking-tighter mb-4">Direct Support</h3>
-                    <div className="space-y-4">
-                       <div className="flex items-center gap-4 text-emerald-400 font-black text-xl"><Phone size={24}/> +91 92171 14472</div>
-                       <div className="flex items-center gap-4 text-emerald-400 font-black text-xl"><Phone size={24}/> +1 (202) 780-1366</div>
-                       <div className="flex items-center gap-4 text-slate-300 font-black text-xl italic"><Mail size={24}/> info@apdglobaltrade.com</div>
+        const LeadsView = ({ leads, setView }) => {
+            const [filter, setFilter] = useState('All');
+            const filtered = filter === 'All' ? leads : leads.filter(l => l.type === filter);
+
+            return (
+                <div className="max-w-7xl mx-auto px-6 py-12">
+                    <div className="flex flex-col md:flex-row justify-between items-end mb-12 gap-6">
+                        <div>
+                            <h2 className="text-4xl font-black italic uppercase tracking-tighter">Market Terminal</h2>
+                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Live Trade Activity</p>
+                        </div>
+                        <div className="flex bg-slate-100 p-1.5 rounded-2xl">
+                            {['All', 'Agriculture', 'Industrial'].map(f => (
+                                <button key={f} onClick={() => setFilter(f)} className={`px-6 py-2 rounded-xl text-[10px] font-black uppercase transition-all ${filter === f ? 'bg-white shadow text-emerald-600' : 'text-slate-400'}`}>{f}</button>
+                            ))}
+                        </div>
                     </div>
-                 </div>
-                 <div className="text-center md:text-right">
-                    <div className="bg-white/5 border border-white/10 p-10 rounded-[3rem]">
-                       <p className="text-[10px] font-black uppercase tracking-[0.5em] text-white/30 mb-6">Verified Support Channel</p>
-                       <button className="bg-emerald-600 px-10 py-5 rounded-2xl font-black uppercase text-xs tracking-widest flex items-center gap-3 mx-auto md:ml-auto">
-                          <MessageCircle size={18}/> Chat with Support
-                       </button>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {filtered.map((lead, i) => (
+                            <div key={i} className="bg-white p-8 rounded-[2.5rem] border border-slate-100 trade-card relative">
+                                <div className="absolute top-4 right-4 text-[8px] font-black text-slate-300 tracking-widest uppercase">{lead.id}</div>
+                                <span className={`text-[8px] font-black px-3 py-1.5 rounded-full uppercase tracking-widest mb-6 inline-block ${lead.type === 'Agriculture' ? 'bg-emerald-50 text-emerald-600' : 'bg-blue-50 text-blue-600'}`}>{lead.type}</span>
+                                <h3 className="text-xl font-black uppercase italic mb-6 leading-tight h-14 overflow-hidden">{lead.product}</h3>
+                                <div className="flex items-center gap-2 mb-8 text-xs font-bold text-slate-500">
+                                    <i data-lucide="map-pin" className="w-4 h-4 text-emerald-500"></i> {lead.origin}
+                                </div>
+                                <div className="flex justify-between items-end border-t pt-6">
+                                    <div>
+                                        <p className="text-2xl font-black italic text-slate-900">{lead.qty}</p>
+                                        <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest">Required</p>
+                                    </div>
+                                    <button onClick={() => setView('pricing')} className="bg-slate-900 text-white w-12 h-12 rounded-full flex items-center justify-center hover:bg-emerald-600 transition-all"><i data-lucide="lock" className="w-4 h-4"></i></button>
+                                </div>
+                            </div>
+                        ))}
                     </div>
-                 </div>
-              </div>
-           </div>
-        )}
-      </main>
+                </div>
+            );
+        };
 
-      {/* --- PREMIUM FOOTER --- */}
-      <footer className="bg-white border-t border-slate-200 pt-32 pb-12 px-6">
-        <div className="max-w-screen-2xl mx-auto">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-16 mb-24">
-            <div className="col-span-1 md:col-span-1">
-              <div className="flex items-center gap-2 mb-8">
-                <div className="bg-emerald-600 p-2 rounded-lg text-white"><Globe size={20} /></div>
-                <span className="text-xl font-black tracking-tighter uppercase italic">APD GLOBAL</span>
-              </div>
-              <p className="text-slate-400 font-medium text-sm leading-relaxed mb-8">
-                The world's first institutional trade terminal designed to eliminate brokers and empower direct deals.
-              </p>
+        const PricingView = ({ plans, currency, onPay }) => (
+            <div className="max-w-7xl mx-auto px-6 py-20">
+                <div className="text-center mb-20">
+                    <div className="inline-block bg-amber-50 text-amber-700 px-6 py-2 rounded-full border border-amber-100 text-[10px] font-black uppercase tracking-widest mb-6">Promotional Launch: 50% Off Auto-Applied</div>
+                    <h2 className="text-5xl font-black italic uppercase tracking-tighter mb-4">Membership Access</h2>
+                </div>
+                <div className="grid md:grid-cols-3 gap-10">
+                    {plans.map((p, i) => (
+                        <div key={i} className={`bg-white rounded-[3rem] p-12 border-2 flex flex-col ${i === 1 ? 'border-emerald-500 shadow-2xl scale-105' : 'border-slate-100'}`}>
+                            <h3 className="text-2xl font-black italic uppercase mb-2">{p.name}</h3>
+                            <div className="mb-10">
+                                <span className="text-slate-300 line-through text-lg font-bold mr-2">{currency === 'USD' ? '$' : '₹'}{p.original.toLocaleString()}</span>
+                                <span className="text-5xl font-black text-emerald-600">{currency === 'USD' ? '$' : '₹'}{p.price.toLocaleString()}</span>
+                            </div>
+                            <ul className="space-y-5 mb-12 flex-grow">
+                                {p.features.map((f, j) => (
+                                    <li key={j} className="text-xs font-bold text-slate-600 flex items-center gap-3">
+                                        <i data-lucide="check" className="w-4 h-4 text-emerald-500"></i> {f}
+                                    </li>
+                                ))}
+                            </ul>
+                            <button onClick={() => onPay(p)} className="w-full bg-slate-900 text-white py-5 rounded-2xl font-black uppercase text-[10px] tracking-widest hover:bg-emerald-600 shadow-xl">Select {p.name}</button>
+                        </div>
+                    ))}
+                </div>
             </div>
-            <div>
-              <h5 className="text-[10px] font-black uppercase tracking-widest text-slate-900 mb-8">Platform</h5>
-              <ul className="space-y-4 text-sm font-bold text-slate-400 uppercase tracking-widest">
-                <li className="cursor-pointer hover:text-emerald-600" onClick={() => setView('leads')}>Live RFQs</li>
-                <li className="cursor-pointer hover:text-emerald-600" onClick={() => setView('rfq')}>Post Requirement</li>
-                <li className="cursor-pointer hover:text-emerald-600" onClick={() => setView('pricing')}>Suppliers Pricing</li>
-              </ul>
-            </div>
-            <div>
-              <h5 className="text-[10px] font-black uppercase tracking-widest text-slate-900 mb-8">Company</h5>
-              <ul className="space-y-4 text-sm font-bold text-slate-400 uppercase tracking-widest">
-                <li className="cursor-pointer hover:text-emerald-600" onClick={() => setView('contact')}>Global Offices</li>
-                <li className="cursor-pointer hover:text-emerald-600" onClick={() => setView('terms')}>Terms of Service</li>
-                <li className="cursor-pointer hover:text-emerald-600">Privacy Policy</li>
-              </ul>
-            </div>
-            <div>
-               <h5 className="text-[10px] font-black uppercase tracking-widest text-slate-900 mb-8">Newsletter</h5>
-               <div className="flex gap-2 p-1 bg-slate-100 rounded-2xl">
-                  <input placeholder="EMAIL" className="bg-transparent border-none outline-none p-3 text-[10px] font-black w-full" />
-                  <button className="bg-slate-900 text-white p-3 rounded-xl"><ArrowRightLeft size={14}/></button>
-               </div>
-            </div>
-          </div>
-          <div className="border-t border-slate-100 pt-12 flex flex-col md:flex-row justify-between items-center gap-6">
-            <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.5em]">© 2024 APD GLOBAL HUB • POWERED BY INSTITUTIONAL ACCESS</p>
-            <div className="flex gap-8">
-               <div className="flex items-center gap-2 text-[9px] font-black text-slate-400 uppercase tracking-widest"><CreditCard size={14}/> Secured by Razorpay</div>
-               <div className="flex items-center gap-2 text-[9px] font-black text-slate-400 uppercase tracking-widest"><ShieldCheck size={14}/> SSL Encrypted</div>
-            </div>
-          </div>
-        </div>
-      </footer>
+        );
 
-      {/* --- LOGIN MODAL --- */}
-      {showLogin && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/90 backdrop-blur-md animate-in fade-in">
-          <div className="relative bg-white p-12 md:p-16 rounded-[4rem] w-full max-w-sm border-t-[12px] border-emerald-600 shadow-2xl overflow-hidden">
-            <div className="absolute top-0 right-0 p-8 opacity-5"><Globe size={120}/></div>
-            <h3 className="text-3xl font-black uppercase italic text-center mb-8 tracking-tighter">Terminal Auth</h3>
-            <input 
-              type="password" 
-              placeholder="••••" 
-              className="w-full p-6 bg-slate-100 rounded-[2rem] text-center font-black text-4xl tracking-[0.5em] mb-6 outline-none focus:ring-4 ring-emerald-500/20 transition-all border-none" 
-              value={pinInput} 
-              autoFocus
-              onChange={e => setPinInput(e.target.value)} 
-              onKeyDown={e => e.key === 'Enter' && handleLogin()} 
-            />
-            <button onClick={handleLogin} className="w-full py-6 bg-slate-900 text-white rounded-[2rem] font-black uppercase text-[11px] tracking-widest hover:bg-emerald-600 transition-all shadow-2xl">Verify Institutional Key</button>
-            <button onClick={() => setShowLogin(false)} className="w-full mt-6 text-[10px] font-black uppercase text-slate-300 tracking-[0.2em]">Cancel Session</button>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
-import React, { useState, useEffect } from 'react';
-import { 
-  Globe, ShieldCheck, Lock, MessageSquare, MapPin, 
-  Trash2, Plus, UserPlus, Ban, CheckCircle, 
-  ChevronRight, Phone, Mail, Facebook, Edit3 
-} from 'lucide-react';
-
-const ADMIN_PIN = "1818";
-const WHATSAPP_LINK = "https://wa.me/919266418868";
-const FB_LINK = "https://www.facebook.com/share/1CtwjV4rXG/";
-const EMAIL = "info@apdglobaltrade.com";
-const PHONE_IN = "+91 92664 18868";
-const PHONE_US = "+1 (202) 780-1366";
-
-const LOCATIONS = [
-  { country: "India", city: "New Delhi", addr: "B-24, Sector 3, Rohini, New Delhi, 110085" },
-  { country: "USA", city: "Washington D.C.", addr: "1717 Pennsylvania Avenue NW, Suite 1025, DC 20006" },
-  { country: "UAE", city: "Dubai", addr: "Level 14, Boulevard Plaza Tower 1, Sheikh Mohammed Bin Rashid Blvd" },
-  { country: "China", city: "Guangzhou", addr: "No. 5, Huaxia Road, Tianhe District, Guangzhou, 510623" }
-];
-
-// Initial Data Generator
-const generateBulkLeads = () => {
-  const agri = ["ICUMSA 45 Sugar", "Refined Sunflower Oil", "1121 Sella Basmati", "Yellow Corn", "Soybean Non-GMO", "Wheat Grade 2"];
-  const indus = ["Copper Cathodes", "Aluminum Ingots", "Urea 46%", "Solar Panels", "Bitumen VG30", "Used Rails"];
-  const origins = ["UAE", "Saudi Arabia", "USA", "China", "Vietnam", "Turkey"];
-  
-  return Array.from({ length: 110 }, (_, i) => ({
-    id: `RFQ-${20000 + i}`,
-    product: i % 2 === 0 ? agri[Math.floor(Math.random()*agri.length)] : indus[Math.floor(Math.random()*indus.length)],
-    qty: `${Math.floor(Math.random() * 500) + 50} Containers`,
-    origin: origins[Math.floor(Math.random()*origins.length)],
-    type: i % 2 === 0 ? 'Agriculture' : 'Industrial',
-    urgency: i % 15 === 0 ? 'High' : 'Regular'
-  }));
-};
-
-export default function App() {
-  const [view, setView] = useState('home');
-  const [leads, setLeads] = useState(generateBulkLeads());
-  const [suppliers, setSuppliers] = useState([
-    { id: 'SUP-001', name: 'Al-Bayan Trading', category: 'Agriculture', status: 'Active' }
-  ]);
-  const [bannedList, setBannedList] = useState(['BAN-999']);
-  const [currency, setCurrency] = useState('USD');
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [pin, setPin] = useState("");
-  const [showPinModal, setShowPinModal] = useState(false);
-
-  // Auth Guard for Admin
-  const handleAdminAccess = () => {
-    if (pin === ADMIN_PIN) {
-      setIsAdmin(true);
-      setShowPinModal(false);
-      setView('admin');
-    } else {
-      alert("Invalid Security PIN");
-    }
-    setPin("");
-  };
-
-  const deleteLead = (id) => {
-    setLeads(leads.filter(l => l.id !== id));
-  };
-
-  const addLead = (newLead) => {
-    setLeads([{ ...newLead, id: `RFQ-${Date.now()}` }, ...leads]);
-  };
-
-  const addSupplier = (sup) => {
-    setSuppliers([{ ...sup, id: `SUP-${Math.floor(Math.random()*1000)}` }, ...suppliers]);
-  };
-
-  const toggleBan = (id) => {
-    if (bannedList.includes(id)) {
-      setBannedList(bannedList.filter(i => i !== id));
-    } else {
-      setBannedList([...bannedList, id]);
-    }
-  };
-
-  return (
-    <div className="min-h-screen bg-[#FDFDFD] text-slate-900 font-sans">
-      {/* Floating Elements */}
-      <a href={WHATSAPP_LINK} target="_blank" className="fixed bottom-8 right-8 z-[60] bg-[#25d366] text-white px-6 py-3 rounded-full shadow-2xl flex items-center gap-3 font-bold text-xs uppercase hover:scale-105 transition-all">
-        <MessageSquare size={18} /> WhatsApp Support
-      </a>
-
-      {/* Navigation */}
-      <nav className="fixed w-full z-50 bg-white/80 backdrop-blur-xl border-b border-slate-100 py-4 px-6">
-        <div className="max-w-7xl mx-auto flex justify-between items-center">
-          <div className="flex items-center gap-2 cursor-pointer" onClick={() => setView('home')}>
-            <div className="bg-emerald-600 text-white p-2 rounded-xl"><Globe size={20} /></div>
-            <div>
-              <h1 className="text-xl font-black italic tracking-tighter uppercase leading-none">APD Global</h1>
-              <p className="text-[8px] font-bold text-slate-400 tracking-widest uppercase">The Trade Terminal</p>
-            </div>
-          </div>
-          
-          <div className="hidden md:flex gap-8 items-center text-[10px] font-black uppercase tracking-widest text-slate-500">
-            <button onClick={() => setView('leads')} className="hover:text-emerald-600">Market Board</button>
-            <button onClick={() => setView('pricing')} className="hover:text-emerald-600">Pricing</button>
-            <button onClick={() => setView('contact')} className="hover:text-emerald-600">Offices</button>
-            <div className="bg-slate-100 p-1 rounded-lg flex gap-1">
-              {['USD', 'INR'].map(c => (
-                <button key={c} onClick={() => setCurrency(c)} className={`px-3 py-1 rounded-md transition-all ${currency === c ? 'bg-white shadow text-slate-900' : 'text-slate-400'}`}>{c}</button>
-              ))}
-            </div>
-          </div>
-
-          <button 
-            onClick={() => isAdmin ? setView('admin') : setShowPinModal(true)}
-            className="bg-slate-900 text-white px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-emerald-600 transition-all"
-          >
-            {isAdmin ? 'Master Console' : 'Supplier Login'}
-          </button>
-        </div>
-      </nav>
-
-      {/* Content Router */}
-      <main className="pt-24 min-h-[80vh]">
-        {view === 'home' && <HomeHero setView={setView} />}
-        {view === 'leads' && <MarketBoard leads={leads} setView={setView} bannedList={bannedList} />}
-        {view === 'pricing' && <Pricing currency={currency} />}
-        {view === 'contact' && <Offices />}
-        {view === 'terms' && <Terms />}
-        {view === 'admin' && isAdmin && (
-          <AdminConsole 
-            leads={leads} 
-            addLead={addLead} 
-            deleteLead={deleteLead} 
-            suppliers={suppliers}
-            addSupplier={addSupplier}
-            bannedList={bannedList}
-            toggleBan={toggleBan}
-          />
-        )}
-      </main>
-
-      {/* Footer */}
-      <footer className="bg-white border-t border-slate-100 py-20 px-6 mt-20">
-        <div className="max-w-7xl mx-auto grid md:grid-cols-4 gap-12">
-          <div className="col-span-1">
-            <h2 className="text-xl font-black italic mb-6 uppercase tracking-tighter">APD GLOBAL TRADE</h2>
-            <p className="text-xs font-medium text-slate-400 leading-relaxed italic mb-8">Verified Institutional Terminal. Connecting global demand with verified supply chains. Zero brokerage.</p>
-            <div className="flex gap-4">
-              <a href={FB_LINK} target="_blank" className="p-3 bg-blue-50 text-blue-600 rounded-xl hover:bg-blue-600 hover:text-white transition-all"><Facebook size={20} /></a>
-              <a href={WHATSAPP_LINK} target="_blank" className="p-3 bg-emerald-50 text-emerald-600 rounded-xl hover:bg-emerald-600 hover:text-white transition-all"><Phone size={20} /></a>
-            </div>
-          </div>
-          <div className="md:col-span-3 grid grid-cols-2 md:grid-cols-4 gap-8">
-            {LOCATIONS.map(loc => (
-              <div key={loc.country}>
-                <h4 className="text-[10px] font-black uppercase tracking-widest mb-4 text-slate-900 border-b border-slate-100 pb-2">{loc.country} Hub</h4>
-                <p className="text-[10px] font-medium text-slate-400 uppercase leading-loose">{loc.addr}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-        <div className="max-w-7xl mx-auto mt-20 pt-8 border-t border-slate-50 flex justify-between items-center text-[9px] font-bold text-slate-300 uppercase tracking-widest">
-          <span>© 2024 APD Global Trade</span>
-          <div className="flex gap-6">
-            <span className="cursor-pointer hover:text-emerald-600" onClick={() => setView('terms')}>Terms</span>
-            <span className="cursor-pointer hover:text-emerald-600" onClick={() => setView('contact')}>Contact</span>
-          </div>
-        </div>
-      </footer>
-
-      {/* PIN Modal */}
-      {showPinModal && (
-        <div className="fixed inset-0 z-[100] bg-slate-900/90 backdrop-blur-md flex items-center justify-center p-4">
-          <div className="bg-white rounded-[3rem] p-10 w-full max-w-sm shadow-2xl">
-            <h3 className="text-xl font-black uppercase text-center mb-8 italic">Security Authentication</h3>
-            <input 
-              type="password" 
-              placeholder="PIN" 
-              className="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl p-4 text-center text-3xl font-black mb-6 outline-none focus:border-emerald-500" 
-              value={pin} 
-              onChange={(e) => setPin(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && handleAdminAccess()}
-            />
-            <button onClick={handleAdminAccess} className="w-full bg-slate-900 text-white py-4 rounded-xl font-black uppercase text-xs tracking-widest mb-4">Authorize</button>
-            <button onClick={() => setShowPinModal(false)} className="w-full text-slate-400 text-[10px] font-bold uppercase tracking-widest">Cancel</button>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
-
-// VIEW COMPONENTS
-
-const HomeHero = ({ setView }) => (
-  <div className="max-w-7xl mx-auto px-6 py-20 text-center">
-    <div className="inline-flex items-center gap-2 bg-emerald-50 text-emerald-700 px-4 py-2 rounded-full mb-8 border border-emerald-100">
-      <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
-      <span className="text-[9px] font-black uppercase tracking-widest">Live: 115 Institutional Queries</span>
-    </div>
-    <h1 className="text-7xl md:text-[10rem] font-black tracking-tighter uppercase italic leading-[0.8] mb-12">
-      Trade <span className="text-emerald-600">Fast.</span> <br/> Direct.
-    </h1>
-    <p className="text-slate-400 max-w-2xl mx-auto text-lg mb-12 font-medium">Verified institutional marketplace for Bulk Commodities. Access LOI/BCL backed demand directly from buyers across 14 nations.</p>
-    <div className="flex flex-col sm:flex-row gap-4 justify-center">
-      <button onClick={() => setView('leads')} className="bg-emerald-600 text-white px-10 py-5 rounded-2xl font-black uppercase text-xs tracking-widest shadow-xl shadow-emerald-200">View Market Board</button>
-      <button onClick={() => setView('pricing')} className="bg-white border border-slate-200 px-10 py-5 rounded-2xl font-black uppercase text-xs tracking-widest shadow-sm">Become Supplier</button>
-    </div>
-  </div>
-);
-
-const MarketBoard = ({ leads, setView, bannedList }) => {
-  const [filter, setFilter] = useState('All');
-  const filtered = filter === 'All' ? leads : leads.filter(l => l.type === filter);
-
-  return (
-    <div className="max-w-7xl mx-auto px-6 py-10">
-      <div className="flex flex-col md:flex-row justify-between items-end mb-16 gap-6">
-        <div>
-          <h2 className="text-4xl font-black italic uppercase tracking-tighter">Market Terminal</h2>
-          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Verified Global Demand Board</p>
-        </div>
-        <div className="bg-slate-100 p-1 rounded-2xl flex gap-1">
-          {['All', 'Agriculture', 'Industrial'].map(f => (
-            <button key={f} onClick={() => setFilter(f)} className={`px-6 py-2 rounded-xl text-[10px] font-black uppercase transition-all ${filter === f ? 'bg-white shadow text-emerald-600' : 'text-slate-500'}`}>{f}</button>
-          ))}
-        </div>
-      </div>
-      <div className="grid md:grid-cols-3 gap-6">
-        {filtered.map((lead) => (
-          <div key={lead.id} className="bg-white border border-slate-100 p-8 rounded-[2.5rem] shadow-sm hover:shadow-xl transition-all relative overflow-hidden group">
-            {lead.urgency === 'High' && <div className="absolute top-0 right-0 bg-red-500 text-white text-[8px] font-black px-4 py-1 uppercase rotate-45 translate-x-3 translate-y-1">Urgent</div>}
-            <span className={`text-[9px] font-black px-3 py-1.5 rounded-full uppercase mb-6 inline-block ${lead.type === 'Agriculture' ? 'bg-emerald-50 text-emerald-600' : 'bg-blue-50 text-blue-600'}`}>{lead.type}</span>
-            <h3 className="text-xl font-black uppercase italic mb-6 text-slate-900 leading-tight">{lead.product}</h3>
-            <div className="flex items-center gap-2 mb-8 text-xs font-bold text-slate-400 uppercase">
-              <MapPin size={14} className="text-emerald-500" /> Buyer Location: {lead.origin}
-            </div>
-            <div className="flex justify-between items-end border-t pt-6 border-slate-50">
-              <div>
-                <p className="text-2xl font-black italic text-slate-900 tracking-tighter">{lead.qty}</p>
-                <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest">Volume Required</p>
-              </div>
-              <button onClick={() => setView('pricing')} className="bg-slate-900 text-white p-4 rounded-xl hover:bg-emerald-600 transition-colors">
-                <Lock size={16} />
-              </button>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-};
-
-const AdminConsole = ({ leads, addLead, deleteLead, suppliers, addSupplier, bannedList, toggleBan }) => {
-  const [tab, setTab] = useState('queries');
-  const [newLead, setNewLead] = useState({ product: '', qty: '', origin: '', type: 'Agriculture', urgency: 'Regular' });
-  const [newSup, setNewSup] = useState({ name: '', category: 'Agriculture' });
-
-  return (
-    <div className="max-w-7xl mx-auto px-6 py-10">
-      <div className="bg-slate-900 rounded-[3.5rem] p-10 md:p-16 text-white shadow-2xl">
-        <div className="flex flex-col md:flex-row justify-between gap-8 mb-16">
-          <div>
-            <h2 className="text-4xl font-black italic uppercase tracking-tighter flex items-center gap-4">
-              <ShieldCheck size={36} className="text-emerald-500" /> Master Console
-            </h2>
-            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-2">Platform Administration & Ecosystem Control</p>
-          </div>
-          <div className="bg-white/10 p-1 rounded-2xl flex gap-1 self-start">
-            {['queries', 'suppliers', 'bans'].map(t => (
-              <button key={t} onClick={() => setTab(t)} className={`px-6 py-2 rounded-xl text-[10px] font-black uppercase transition-all ${tab === t ? 'bg-white text-slate-900' : 'text-slate-400'}`}>{t}</button>
-            ))}
-          </div>
-        </div>
-
-        {tab === 'queries' && (
-          <div className="space-y-12">
-            <div className="bg-white/5 p-8 rounded-3xl border border-white/10">
-              <h4 className="text-xs font-black uppercase tracking-widest mb-6 flex items-center gap-2"><Plus size={16} /> Inject New Bulk RFQ</h4>
-              <div className="grid md:grid-cols-4 gap-4 mb-6">
-                <input placeholder="Product Name" className="bg-white/10 p-4 rounded-xl outline-none text-xs font-bold" value={newLead.product} onChange={e=>setNewLead({...newLead, product: e.target.value})} />
-                <input placeholder="Qty (e.g. 500 MT)" className="bg-white/10 p-4 rounded-xl outline-none text-xs font-bold" value={newLead.qty} onChange={e=>setNewLead({...newLead, qty: e.target.value})} />
-                <input placeholder="Destination" className="bg-white/10 p-4 rounded-xl outline-none text-xs font-bold" value={newLead.origin} onChange={e=>setNewLead({...newLead, origin: e.target.value})} />
-                <select className="bg-white/10 p-4 rounded-xl outline-none text-xs font-bold" value={newLead.type} onChange={e=>setNewLead({...newLead, type: e.target.value})}>
-                  <option className="bg-slate-900">Agriculture</option>
-                  <option className="bg-slate-900">Industrial</option>
-                </select>
-              </div>
-              <button onClick={() => {addLead(newLead); setNewLead({product:'', qty:'', origin:'', type:'Agriculture', urgency:'Regular'})}} className="bg-emerald-600 text-white px-8 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest">Broadcast RFQ</button>
-            </div>
-
-            <div className="bg-white/5 p-8 rounded-3xl border border-white/10">
-              <h4 className="text-xs font-black uppercase tracking-widest mb-6">Manage Active RFQs ({leads.length})</h4>
-              <div className="max-h-[400px] overflow-y-auto space-y-3 pr-4 custom-scrollbar">
-                {leads.map(lead => (
-                  <div key={lead.id} className="flex items-center justify-between p-4 bg-white/5 rounded-2xl hover:bg-white/10 transition-all border border-white/5">
-                    <div>
-                      <p className="text-xs font-black uppercase italic">{lead.product}</p>
-                      <p className="text-[8px] font-bold text-slate-500 uppercase tracking-widest">{lead.qty} • {lead.origin}</p>
+        const ContactView = () => (
+            <div className="max-w-7xl mx-auto px-6 py-24 text-center">
+                <h2 className="text-5xl font-black italic uppercase tracking-tighter mb-16">Contact Global Trade</h2>
+                <div className="grid md:grid-cols-3 gap-12 mb-20">
+                    <div className="p-10 bg-white border border-slate-100 rounded-[3rem]">
+                        <div className="w-16 h-16 bg-blue-50 text-blue-600 rounded-3xl flex items-center justify-center mx-auto mb-6"><i data-lucide="facebook" className="w-8 h-8"></i></div>
+                        <h4 className="font-black italic uppercase mb-2">Facebook</h4>
+                        <a href={FB_LINK} target="_blank" className="text-xs font-bold text-slate-400 hover:text-blue-600 underline">Visit Profile</a>
                     </div>
-                    <button onClick={() => deleteLead(lead.id)} className="p-2 text-red-400 hover:bg-red-400/20 rounded-lg transition-all"><Trash2 size={16}/></button>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        )}
-
-        {tab === 'suppliers' && (
-          <div className="space-y-12">
-            <div className="bg-white/5 p-8 rounded-3xl border border-white/10">
-              <h4 className="text-xs font-black uppercase tracking-widest mb-6 flex items-center gap-2"><UserPlus size={16} /> Manually Create Supplier Profile</h4>
-              <p className="text-[9px] text-slate-400 mb-6 uppercase tracking-widest italic">Use this for suppliers who paid you via direct bank transfer or cash.</p>
-              <div className="grid md:grid-cols-2 gap-4 mb-6">
-                <input placeholder="Company Name" className="bg-white/10 p-4 rounded-xl outline-none text-xs font-bold" value={newSup.name} onChange={e=>setNewSup({...newSup, name: e.target.value})} />
-                <select className="bg-white/10 p-4 rounded-xl outline-none text-xs font-bold" value={newSup.category} onChange={e=>setNewSup({...newSup, category: e.target.value})}>
-                  <option className="bg-slate-900">Agriculture</option>
-                  <option className="bg-slate-900">Industrial</option>
-                </select>
-              </div>
-              <button onClick={() => {addSupplier(newSup); setNewSup({name:'', category:'Agriculture'})}} className="bg-emerald-600 text-white px-8 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest">Activate Supplier</button>
-            </div>
-
-            <div className="bg-white/5 p-8 rounded-3xl border border-white/10">
-              <h4 className="text-xs font-black uppercase tracking-widest mb-6">Platform Suppliers</h4>
-              <div className="space-y-3">
-                {suppliers.map(sup => (
-                  <div key={sup.id} className="flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/5">
-                    <div className="flex items-center gap-4">
-                      <div className="w-10 h-10 bg-emerald-500/20 rounded-xl flex items-center justify-center text-emerald-500"><CheckCircle size={20}/></div>
-                      <div>
-                        <p className="text-xs font-black uppercase">{sup.name}</p>
-                        <p className="text-[8px] font-bold text-slate-500 uppercase tracking-widest">{sup.id} • {sup.category}</p>
-                      </div>
+                    <div className="p-10 bg-white border border-emerald-500 rounded-[3rem] shadow-xl shadow-emerald-50">
+                        <div className="w-16 h-16 bg-emerald-50 text-emerald-600 rounded-3xl flex items-center justify-center mx-auto mb-6"><i data-lucide="phone" className="w-8 h-8"></i></div>
+                        <h4 className="font-black italic uppercase mb-2">WhatsApp Official</h4>
+                        <a href={WHATSAPP_LINK} target="_blank" className="text-xs font-bold text-emerald-600 underline">+91 92664 18868</a>
                     </div>
-                    <div className="flex gap-2">
-                      <button onClick={() => toggleBan(sup.id)} className={`px-4 py-2 rounded-lg text-[8px] font-black uppercase tracking-widest ${bannedList.includes(sup.id) ? 'bg-red-500 text-white' : 'bg-slate-800 text-slate-400'}`}>
-                        {bannedList.includes(sup.id) ? 'Banned' : 'Active'}
-                      </button>
+                    <div className="p-10 bg-white border border-slate-100 rounded-[3rem]">
+                        <div className="w-16 h-16 bg-slate-50 text-slate-600 rounded-3xl flex items-center justify-center mx-auto mb-6"><i data-lucide="mail" className="w-8 h-8"></i></div>
+                        <h4 className="font-black italic uppercase mb-2">Official Email</h4>
+                        <p className="text-xs font-bold text-slate-400">info@apdglobaltrade.com</p>
                     </div>
-       
+                </div>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-6 opacity-40 text-[9px] font-black uppercase tracking-[0.2em] text-slate-400">
+                    <div>New Delhi, India</div>
+                    <div>Dubai, UAE</div>
+                    <div>New York, USA</div>
+                    <div>Guangzhou, China</div>
+                </div>
+            </div>
+        );
+
+        const TermsView = () => (
+            <div className="max-w-4xl mx-auto px-6 py-24 font-medium text-slate-500 space-y-8 bg-white p-16 rounded-[4rem] border border-slate-100 mt-12">
+                <h2 className="text-4xl font-black italic uppercase tracking-tighter text-slate-900 mb-8">Legal Framework</h2>
+                <div className="p-8 bg-amber-50 rounded-3xl border-l-8 border-amber-400 text-amber-900 font-bold uppercase text-[10px] tracking-widest leading-loose">
+                    PLATFORM POLICY: WE PROVIDE AN INSTITUTIONAL MATCHING PLATFORM. WE DO NOT GUARANTEE ORDERS. ALL AMOUNTS PAID ARE NON-REFUNDABLE AS PER THE B2B DIGITAL SERVICE ACT.
+                </div>
+                <p>1. <strong>Direct Dealings:</strong> We are just giving a platform where buyers and suppliers can make deals without brokers. APD Global holds no responsibility for the physical transaction.</p>
+                <p>2. <strong>No Warranty:</strong> APD Global Trade does not guarantee to give you an order. Our service is the provision of verified lead data and terminal access.</p>
+                <p>3. <strong>Immediate Delivery:</strong> Since membership unlocks proprietary trade intelligence immediately, all sales are final and non-refundable.</p>
+                <p>4. <strong>Independent Verification:</strong> It is the supplier's duty to verify LC/BCL/PO validity before shipping.</p>
+            </div>
+        );
+
+        const AdminView = ({ leads, setLeads }) => {
+            const [item, setItem] = useState({ product: '', qty: '', origin: '', type: 'Agriculture' });
+            const inject = () => {
+                if(!item.product) return;
+                setLeads([{ ...item, id: `RFQ-${Math.floor(Math.random()*90000)+10000}`, status: 'Live', date: 'Just In' }, ...leads]);
+                setItem({ product: '', qty: '', origin: '', type: 'Agriculture' });
+                alert("Lead Injected to Live Terminal.");
+            };
+            return (
+                <div className="max-w-4xl mx-auto px-6 py-20">
+                    <div className="admin-gradient p-16 rounded-[3.5rem] shadow-2xl text-white">
+                        <h2 className="text-2xl font-black italic uppercase mb-8">Lead Injection Terminal</h2>
+                        <div className="grid md:grid-cols-2 gap-6 mb-8">
+                            <input placeholder="Product" className="bg-white/5 p-5 rounded-2xl outline-none border border-white/10 text-xs font-bold uppercase" value={item.product} onChange={e=>setItem({...item, product: e.target.value})} />
+                            <input placeholder="Qty (e.g. 50 Containers)" className="bg-white/5 p-5 rounded-2xl outline-none border border-white/10 text-xs font-bold uppercase" value={item.qty} onChange={e=>setItem({...item, qty: e.target.value})} />
+                            <input placeholder="Country" className="bg-white/5 p-5 rounded-2xl outline-none border border-white/10 text-xs font-bold uppercase" value={item.origin} onChange={e=>setItem({...item, origin: e.target.value})} />
+                            <select className="bg-white/5 p-5 rounded-2xl outline-none border border-white/10 text-xs font-bold uppercase text-white" value={item.type} onChange={e=>setItem({...item, type: e.target.value})}>
+                                <option className="text-black">Agriculture</option>
+                                <option className="text-black">Industrial</option>
+                            </select>
+                        </div>
+                        <button onClick={inject} className="w-full bg-emerald-600 py-6 rounded-2xl font-black uppercase text-xs tracking-widest shadow-2xl shadow-emerald-900/40">Push to Live Board</button>
+                    </div>
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
+
