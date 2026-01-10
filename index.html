@@ -3,21 +3,39 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>APD Global Hub | Digital Trade Terminal</title>
+    <title>APD GLOBAL | Institutional Commodity Exchange</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Syncopate:wght@400;700&family=Inter:wght@300;400;700;900&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #020617; color: white; margin: 0; overflow-x: hidden; }
-        .glass { background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.1); }
-        .video-bg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -2; object-fit: cover; opacity: 0.4; filter: contrast(1.2) brightness(0.6); }
-        .v-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle, transparent 20%, #020617 100%); z-index: -1; }
-        .hero-text { font-size: clamp(3rem, 10vw, 8rem); line-height: 0.9; font-weight: 900; text-transform: uppercase; font-style: italic; letter-spacing: -0.04em; }
-        ::-webkit-scrollbar { width: 4px; }
-        ::-webkit-scrollbar-thumb { background: #3b82f6; border-radius: 10px; }
+        :root { --accent: #2563eb; --bg: #020617; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); color: #fff; margin: 0; overflow-x: hidden; }
+        .font-sync { font-family: 'Syncopate', sans-serif; }
+        
+        /* Video & Overlays */
+        .video-wrap { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -2; pointer-events: none; }
+        .video-wrap video { width: 100%; height: 100%; object-fit: cover; opacity: 0.35; filter: grayscale(100%) contrast(1.2) brightness(0.5); }
+        .gradient-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; background: radial-gradient(circle at 50% 50%, transparent 0%, #020617 95%); }
+        
+        /* High-End Glass */
+        .glass-nav { background: rgba(2, 6, 23, 0.9); backdrop-filter: blur(20px); border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .glass-panel { background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.05); }
+        .glass-card { 
+            background: linear-gradient(135deg, rgba(30, 41, 59, 0.4) 0%, rgba(15, 23, 42, 0.6) 100%); 
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: all 0.5s cubic-bezier(0.19, 1, 0.22, 1);
+        }
+        .glass-card:hover { border-color: var(--accent); transform: translateY(-10px); background: rgba(30, 41, 59, 0.7); box-shadow: 0 30px 60px -12px rgba(37, 99, 235, 0.2); }
+
+        /* Typography */
+        .mega-title { font-size: clamp(3rem, 15vw, 12rem); font-weight: 900; line-height: 0.8; letter-spacing: -0.06em; text-transform: uppercase; font-style: italic; }
+        .label-wide { text-transform: uppercase; letter-spacing: 0.5em; font-size: 10px; font-weight: 900; color: #64748b; }
+
+        @keyframes scanline { 0% { bottom: 100%; } 80% { bottom: 100%; } 100% { bottom: 0%; } }
+        .scanline { position: absolute; width: 100%; height: 2px; background: rgba(37, 99, 235, 0.2); animation: scanline 4s linear infinite; }
     </style>
 </head>
 <body>
@@ -26,188 +44,192 @@
     <script type="text/babel">
         const { useState, useEffect } = React;
 
-        // Configuration
         const ADMIN_PIN = "1818";
         const WHATSAPP = "https://wa.me/919266418868";
+        const FACEBOOK = "https://facebook.com/apdglobaltrade";
+
+        const ADDRESSES = [
+            { city: "New Delhi", country: "India", addr: "B-24, Sector 3, Rohini, New Delhi, 110085", tel: "+91 92664 18868" },
+            { city: "Dubai", country: "UAE", addr: "Level 14, Boulevard Plaza Tower 1, Burj Khalifa District", tel: "+971 4-555-0000" },
+            { city: "Washington", country: "USA", addr: "1717 Pennsylvania Avenue NW, Suite 1025", tel: "+1 202-555-0123" },
+            { city: "Guangzhou", country: "China", addr: "No. 5, Huaxia Road, Tianhe District", tel: "+86 20-555-0000" }
+        ];
 
         const App = () => {
             const [view, setView] = useState('home');
-            const [user, setUser] = useState(null); // { type: 'admin' | 'supplier' | 'buyer', name: string }
+            const [user, setUser] = useState(null);
             const [leads, setLeads] = useState([
-                { id: 'RFQ-901', product: 'Sugar ICUMSA 45', qty: '25,000 MT', port: 'Jebel Ali', price: '$410/MT', status: 'Live' },
-                { id: 'RFQ-902', product: 'Thai Jasmine Rice', qty: '10,000 MT', port: 'Lagos', price: '$520/MT', status: 'Live' }
+                { id: 'RFQ-098', product: 'White Refined Sugar S30', qty: '50,000 MT', port: 'JEBEL ALI', price: '$445/MT', type: 'BUY' },
+                { id: 'RFQ-099', product: 'Non-Basmati Long Grain Rice', qty: '20,000 MT', port: 'DURBAN', price: '$498/MT', type: 'BUY' }
             ]);
-            const [authorizedEntities, setAuthorizedEntities] = useState(['Global Grains Inc', 'Al-Khaleej Trading']);
-            const [showAuth, setShowAuth] = useState(false);
+            const [authModal, setAuthModal] = useState({ open: false, type: '' });
             const [authInput, setAuthInput] = useState("");
 
-            useEffect(() => { if (window.lucide) window.lucide.createIcons(); }, [view, showAuth, user]);
+            useEffect(() => { if (window.lucide) window.lucide.createIcons(); }, [view, authModal, user]);
 
-            const handleLogin = () => {
-                const val = authInput.trim();
-                if (val === ADMIN_PIN) {
-                    setUser({ type: 'admin', name: 'Master Admin' });
+            const handleAuth = () => {
+                if (authInput === ADMIN_PIN) {
+                    setUser({ role: 'admin', name: 'Master' });
                     setView('admin');
-                } else if (authorizedEntities.includes(val)) {
-                    setUser({ type: 'supplier', name: val });
-                    setView('market');
-                } else {
-                    setUser({ type: 'buyer', name: val || 'Guest Buyer' });
+                } else if (authInput.length > 2) {
+                    setUser({ role: authModal.type, name: authInput });
                     setView('market');
                 }
-                setShowAuth(false);
+                setAuthModal({ open: false, type: '' });
                 setAuthInput("");
             };
 
             return (
                 <div className="min-h-screen">
-                    <video autoPlay loop muted playsInline className="video-bg">
-                        <source src="https://assets.mixkit.co/videos/preview/mixkit-large-container-ship-at-sea-34444-large.mp4" type="video/mp4" />
-                    </video>
-                    <div className="v-overlay"></div>
+                    <div className="video-wrap">
+                        <video autoPlay loop muted playsInline>
+                            <source src="https://assets.mixkit.co/videos/preview/mixkit-large-container-ship-at-sea-34444-large.mp4" type="video/mp4" />
+                        </video>
+                    </div>
+                    <div className="gradient-overlay"></div>
 
-                    {/* Navigation */}
-                    <nav className="fixed w-full z-50 glass px-8 py-5 flex justify-between items-center border-b border-white/5">
-                        <div className="flex items-center gap-3 cursor-pointer" onClick={() => setView('home')}>
-                            <div className="bg-blue-600 text-white font-black italic px-2 py-0.5 rounded text-lg">APD</div>
-                            <span className="text-xl font-black uppercase italic tracking-tighter">Global <span className="text-blue-500 text-sm opacity-80 font-normal">Hub</span></span>
+                    <nav className="fixed w-full z-50 glass-nav px-8 md:px-20 py-6 flex justify-between items-center">
+                        <div className="flex items-center gap-4 cursor-pointer" onClick={() => setView('home')}>
+                            <div className="bg-blue-600 w-12 h-12 flex items-center justify-center rounded-xl font-black italic text-xl">A</div>
+                            <span className="text-2xl font-black font-sync tracking-tighter uppercase italic">APD <span className="text-blue-500">Global</span></span>
                         </div>
                         
-                        <div className="flex gap-8 items-center text-[10px] font-black uppercase tracking-[0.3em]">
-                            <button onClick={() => setView('market')} className="hover:text-blue-400">Marketplace</button>
-                            {user?.type === 'admin' && <button onClick={() => setView('admin')} className="text-blue-400 border border-blue-400/30 px-3 py-1 rounded">Admin Console</button>}
-                            {user ? (
-                                <div className="flex items-center gap-4 pl-4 border-l border-white/10">
-                                    <span className="text-blue-400 opacity-60 italic">{user.name}</span>
-                                    <button onClick={() => {setUser(null); setView('home');}} className="opacity-40 hover:opacity-100">Exit</button>
+                        <div className="hidden lg:flex gap-12 items-center">
+                            <button onClick={() => setView('market')} className="label-wide hover:text-blue-400 transition-colors">Marketplace</button>
+                            <button onClick={() => setView('hubs')} className="label-wide hover:text-blue-400 transition-colors">Network</button>
+                            
+                            {!user ? (
+                                <div className="flex gap-4">
+                                    <button onClick={() => setAuthModal({ open: true, type: 'supplier' })} className="px-6 py-2 border border-blue-500/30 rounded text-[10px] font-black uppercase tracking-widest hover:bg-blue-600 transition-all">Supplier Portal</button>
+                                    <button onClick={() => setAuthModal({ open: true, type: 'buyer' })} className="px-6 py-2 bg-white text-black rounded text-[10px] font-black uppercase tracking-widest hover:bg-blue-600 hover:text-white transition-all">Buyer Signup</button>
                                 </div>
                             ) : (
-                                <button onClick={() => setShowAuth(true)} className="bg-white text-black px-6 py-2 rounded-full hover:bg-blue-600 hover:text-white transition-all">Login</button>
+                                <div className="flex items-center gap-6 border-l border-white/10 pl-8">
+                                    <span className="text-[10px] font-black text-blue-400 uppercase tracking-widest italic">{user.name} Terminal</span>
+                                    <button onClick={() => {setUser(null); setView('home');}} className="text-white/40 hover:text-white"><i data-lucide="power" className="w-4 h-4"></i></button>
+                                </div>
                             )}
                         </div>
                     </nav>
 
-                    <main className="pt-32 pb-24 px-6 md:px-20 max-w-7xl mx-auto">
+                    <main className="pt-48 pb-40 px-6 md:px-20 max-w-[1600px] mx-auto">
                         {view === 'home' && (
-                            <div className="py-20 animate-in fade-in slide-in-from-bottom-10 duration-1000">
-                                <h1 className="hero-text mb-8">Global<br/><span className="text-blue-500">Sovereign</span><br/>Trade.</h1>
-                                <p className="text-slate-400 text-xl max-w-xl mb-12 font-medium italic">Digitizing the world's most critical commodity flows. Verified, Direct, and Institutional.</p>
-                                <div className="flex gap-6">
-                                    <button onClick={() => setView('market')} className="bg-blue-600 px-12 py-5 rounded-2xl font-black uppercase text-[10px] tracking-widest shadow-2xl shadow-blue-600/40">Market Terminal</button>
-                                    <button onClick={() => setShowAuth(true)} className="bg-white/10 backdrop-blur-xl px-12 py-5 rounded-2xl font-black uppercase text-[10px] tracking-widest border border-white/10">Access Portal</button>
+                            <div className="animate-in fade-in slide-in-from-bottom-12 duration-1000">
+                                <p className="label-wide mb-8 inline-block bg-blue-600/10 px-6 py-2 rounded-full border border-blue-600/20">Institutional Procurement Protocol</p>
+                                <h1 className="mega-title mb-16">Trade <br/> <span className="text-blue-500 italic">Sovereign.</span></h1>
+                                <p className="text-slate-400 text-2xl font-light max-w-3xl mb-20 leading-relaxed italic">The direct-to-source infrastructure for global commodity markets. No intermediaries. Verified flows. Absolute transparency.</p>
+                                <div className="flex flex-col sm:flex-row gap-8">
+                                    <button onClick={() => setView('market')} className="bg-blue-600 px-20 py-8 rounded-[2rem] font-black uppercase text-xs tracking-[0.3em] shadow-2xl shadow-blue-600/40 hover:scale-105 transition-all">Enter Market</button>
+                                    <a href={WHATSAPP} target="_blank" className="bg-white text-black px-20 py-8 rounded-[2rem] font-black uppercase text-xs tracking-[0.3em] flex items-center justify-center gap-4 hover:bg-blue-600 hover:text-white transition-all">
+                                        <i data-lucide="shield-check"></i> Connect Desk
+                                    </a>
                                 </div>
                             </div>
                         )}
 
                         {view === 'market' && (
-                            <div className="animate-in fade-in duration-500">
-                                <div className="flex justify-between items-end mb-16">
-                                    <h2 className="text-5xl font-black italic uppercase tracking-tighter">Live <span className="text-blue-500">RFQs</span></h2>
-                                    <div className="flex items-center gap-4">
-                                        <div className="bg-green-500/10 text-green-500 border border-green-500/20 px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest animate-pulse">● System Online</div>
+                            <div className="animate-in fade-in duration-700">
+                                <div className="flex justify-between items-end mb-24">
+                                    <div>
+                                        <h2 className="text-7xl font-black italic uppercase tracking-tighter">Live <span className="text-blue-500">Terminal</span></h2>
+                                        <p className="label-wide mt-4">Active Market Broadcast</p>
+                                    </div>
+                                    <div className="bg-white/5 border border-white/10 px-10 py-4 rounded-2xl flex items-center gap-4">
+                                        <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                                        <span className="text-[10px] font-black tracking-widest uppercase text-slate-400">Trading Status: Verified</span>
                                     </div>
                                 </div>
-                                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                                <div className="grid lg:grid-cols-2 xl:grid-cols-3 gap-12">
                                     {leads.map(l => (
-                                        <div key={l.id} className="glass p-10 rounded-[2.5rem] border-t-4 border-blue-600 flex flex-col h-full hover:scale-[1.02] transition-transform">
-                                            <div className="flex justify-between items-start mb-10">
-                                                <span className="text-[10px] font-black bg-blue-600/20 text-blue-400 px-3 py-1 rounded uppercase tracking-widest">{l.id}</span>
-                                                <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Incoterm: CIF</span>
+                                        <div key={l.id} className="glass-card p-14 rounded-[4rem] relative overflow-hidden">
+                                            <div className="scanline"></div>
+                                            <div className="flex justify-between items-start mb-12">
+                                                <span className="bg-blue-600 text-[10px] font-black uppercase px-4 py-1.5 rounded-lg tracking-widest">CIF / {l.port}</span>
+                                                <span className="text-slate-500 text-[10px] font-black">{l.id}</span>
                                             </div>
-                                            <h3 className="text-3xl font-black italic uppercase mb-10 leading-tight flex-grow">{l.product}</h3>
-                                            <div className="space-y-4 pt-8 border-t border-white/5 text-[11px] font-black uppercase tracking-widest">
-                                                <div className="flex justify-between"><span className="text-slate-500">Quantity</span><span>{l.qty}</span></div>
-                                                <div className="flex justify-between"><span className="text-slate-500">Port</span><span>{l.port}</span></div>
-                                                <div className="flex justify-between"><span className="text-slate-500">Target</span><span className="text-green-500">{l.price}</span></div>
+                                            <h3 className="text-4xl font-black uppercase italic mb-14 leading-tight">{l.product}</h3>
+                                            <div className="space-y-6 pt-10 border-t border-white/5 font-black uppercase text-[11px] tracking-widest">
+                                                <div className="flex justify-between"><span className="text-slate-600">Volume</span><span>{l.qty}</span></div>
+                                                <div className="flex justify-between"><span className="text-slate-600">Target</span><span className="text-green-500">{l.price}</span></div>
                                             </div>
-                                            <button className="w-full mt-10 py-4 bg-white/5 hover:bg-blue-600 transition-all rounded-xl font-black uppercase text-[9px] tracking-widest border border-white/10">Submit Official Quote</button>
+                                            <button className="w-full mt-12 py-6 bg-white/5 border border-white/10 hover:bg-blue-600 transition-all rounded-3xl font-black uppercase text-[10px] tracking-widest">Submit Bid</button>
                                         </div>
                                     ))}
                                 </div>
                             </div>
                         )}
 
-                        {view === 'admin' && user?.type === 'admin' && (
-                            <div className="animate-in fade-in duration-500 space-y-12">
-                                <div className="glass p-12 rounded-[3rem]">
-                                    <h2 className="text-3xl font-black italic uppercase mb-10 flex items-center gap-4 text-blue-500">
-                                        <i data-lucide="plus-circle"></i> Inject New Lead
-                                    </h2>
-                                    <div className="grid md:grid-cols-3 gap-8 mb-10">
-                                        {['Product', 'Quantity', 'Port', 'Target Price', 'Incoterm'].map(field => (
-                                            <div key={field} className="space-y-2">
-                                                <label className="text-[9px] font-black uppercase text-slate-500 tracking-widest ml-2">{field}</label>
-                                                <input id={field} type="text" placeholder={`Enter ${field}...`} className="w-full bg-black/40 p-5 rounded-2xl border border-white/5 focus:border-blue-500 outline-none font-bold text-sm" />
+                        {view === 'hubs' && (
+                            <div className="animate-in fade-in duration-700">
+                                <h2 className="text-8xl font-black italic uppercase tracking-tighter text-center mb-32">Our <span className="text-blue-500">Nodes</span></h2>
+                                <div className="grid md:grid-cols-2 gap-12">
+                                    {ADDRESSES.map(a => (
+                                        <div key={a.city} className="glass-card p-16 rounded-[4.5rem] group border-l-[16px] border-blue-600">
+                                            <h3 className="text-6xl font-black italic uppercase mb-2 group-hover:text-blue-500 transition-colors leading-none">{a.city}</h3>
+                                            <p className="label-wide mb-12">{a.country} Command</p>
+                                            <p className="text-slate-400 text-xl font-bold uppercase mb-16 leading-relaxed italic">{a.addr}</p>
+                                            <div className="flex items-center gap-6 text-3xl font-black pt-12 border-t border-white/5">
+                                                <div className="bg-blue-600 p-4 rounded-2xl"><i data-lucide="phone" className="w-6 h-6"></i></div>
+                                                {a.tel}
                                             </div>
-                                        ))}
-                                    </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        {view === 'admin' && (
+                            <div className="max-w-4xl mx-auto glass-panel p-16 rounded-[4rem]">
+                                <h2 className="text-4xl font-black italic uppercase mb-16 border-l-8 border-blue-600 pl-8">Admin Lead Injection</h2>
+                                <div className="grid gap-10">
+                                    {['Product', 'Quantity', 'Target Price', 'Discharge Port'].map(f => (
+                                        <div key={f} className="space-y-3">
+                                            <label className="label-wide ml-4">{f}</label>
+                                            <input id={f} type="text" placeholder={`Enter ${f}...`} className="w-full bg-black/50 p-7 rounded-[2rem] border border-white/5 focus:border-blue-500 outline-none font-bold text-lg" />
+                                        </div>
+                                    ))}
                                     <button 
                                         onClick={() => {
                                             const p = document.getElementById('Product').value;
                                             const q = document.getElementById('Quantity').value;
                                             if(!p || !q) return;
-                                            setLeads([{ id: `RFQ-${Math.floor(Math.random()*900)+100}`, product: p, qty: q, port: document.getElementById('Port').value, price: document.getElementById('Target Price').value, status: 'Live' }, ...leads]);
-                                            alert("Lead Injected to Live Marketplace");
+                                            setLeads([{ id: `RFQ-${Math.floor(Math.random()*999)}`, product: p, qty: q, port: document.getElementById('Discharge Port').value, price: document.getElementById('Target Price').value, type: 'BUY' }, ...leads]);
+                                            setView('market');
                                         }}
-                                        className="w-full bg-blue-600 py-6 rounded-2xl font-black uppercase text-xs tracking-widest hover:bg-blue-500 shadow-xl shadow-blue-600/30"
-                                    >Publish to Marketplace</button>
-                                </div>
-
-                                <div className="glass p-12 rounded-[3rem]">
-                                    <h2 className="text-3xl font-black italic uppercase mb-10 flex items-center gap-4 text-white">
-                                        <i data-lucide="shield-check"></i> Authorized Entities
-                                    </h2>
-                                    <div className="flex gap-4 mb-8">
-                                        <input id="newEntity" type="text" placeholder="Add Company to Supplier White-list..." className="flex-grow bg-black/40 p-5 rounded-2xl border border-white/5 focus:border-blue-500 outline-none font-bold text-sm" />
-                                        <button 
-                                            onClick={() => {
-                                                const ent = document.getElementById('newEntity').value;
-                                                if(ent) setAuthorizedEntities([...authorizedEntities, ent]);
-                                                document.getElementById('newEntity').value = "";
-                                            }}
-                                            className="bg-white text-black px-10 rounded-2xl font-black uppercase text-[10px]"
-                                        >Add</button>
-                                    </div>
-                                    <div className="grid md:grid-cols-2 gap-4">
-                                        {authorizedEntities.map(e => (
-                                            <div key={e} className="bg-white/5 p-4 rounded-xl border border-white/5 flex justify-between items-center text-xs font-bold uppercase italic tracking-widest">
-                                                {e}
-                                                <button onClick={() => setAuthorizedEntities(authorizedEntities.filter(x => x !== e))} className="text-red-500/50 hover:text-red-500"><i data-lucide="x-circle" className="w-4 h-4"></i></button>
-                                            </div>
-                                        ))}
-                                    </div>
+                                        className="w-full bg-blue-600 py-8 rounded-[2.5rem] font-black uppercase tracking-widest shadow-2xl shadow-blue-600/40"
+                                    >Broadcast to Marketplace</button>
                                 </div>
                             </div>
                         )}
                     </main>
 
+                    <footer className="fixed bottom-0 w-full z-40 glass-nav py-6 px-12 flex flex-col md:row justify-between items-center border-t border-white/5 gap-6">
+                        <div className="flex gap-12">
+                            <a href={WHATSAPP} target="_blank" className="label-wide hover:text-green-500 flex items-center gap-3"><i data-lucide="message-square" className="w-4 h-4"></i> WhatsApp Sales</a>
+                            <a href={FACEBOOK} target="_blank" className="label-wide hover:text-blue-500 flex items-center gap-3"><i data-lucide="facebook" className="w-4 h-4"></i> Facebook</a>
+                        </div>
+                        <div className="text-[9px] font-black text-slate-600 uppercase tracking-[0.8em]">Digitizing Global Assets • APD Infrastructure © 2026</div>
+                    </footer>
+
                     {/* Auth Modal */}
-                    {showAuth && (
-                        <div className="fixed inset-0 z-[100] bg-black/95 backdrop-blur-md flex items-center justify-center p-6">
-                            <div className="bg-slate-900 border border-white/10 p-12 rounded-[3rem] w-full max-w-sm text-center">
-                                <h2 className="text-2xl font-black italic uppercase tracking-tighter mb-8">Terminal Access</h2>
+                    {authModal.open && (
+                        <div className="fixed inset-0 z-[100] bg-black/98 flex items-center justify-center p-6 backdrop-blur-3xl">
+                            <div className="w-full max-w-sm text-center">
+                                <p className="label-wide mb-12">Accessing: {authModal.type} Network</p>
                                 <input 
                                     type="text" 
-                                    placeholder="Entity Key or Admin PIN" 
-                                    className="w-full bg-black p-6 rounded-2xl mb-6 border border-white/5 focus:border-blue-500 outline-none text-center font-bold text-lg"
+                                    placeholder="Enter Corporate PIN or Entity Name" 
+                                    className="w-full bg-transparent text-center text-4xl font-black italic border-b-4 border-blue-600 pb-6 outline-none mb-12"
                                     value={authInput}
                                     onChange={e => setAuthInput(e.target.value)}
-                                    onKeyPress={e => e.key === 'Enter' && handleLogin()}
+                                    onKeyPress={e => e.key === 'Enter' && handleAuth()}
                                     autoFocus
                                 />
-                                <button onClick={handleLogin} className="w-full bg-blue-600 py-6 rounded-2xl font-black uppercase text-[10px] tracking-widest hover:bg-blue-500 mb-4">Enter Dashboard</button>
-                                <button onClick={() => setShowAuth(false)} className="text-slate-500 text-[9px] uppercase font-black">Cancel</button>
+                                <button onClick={handleAuth} className="w-full bg-blue-600 py-6 rounded-3xl font-black uppercase text-xs tracking-[0.3em] mb-4 shadow-2xl">Authorize Session</button>
+                                <button onClick={() => setAuthModal({ open: false, type: '' })} className="label-wide opacity-50">Disconnect</button>
                             </div>
                         </div>
                     )}
-
-                    <footer className="fixed bottom-0 w-full glass py-4 px-10 border-t border-white/5 flex justify-between items-center text-[8px] font-black uppercase tracking-[0.4em] text-slate-500">
-                        <div className="flex gap-8">
-                            <a href={WHATSAPP} target="_blank" className="hover:text-blue-400">WhatsApp Trade Desk</a>
-                            <span>Market Liquidity: 240.5k MT</span>
-                        </div>
-                        <div className="hidden md:block">APD Global Infrastructure © 2026</div>
-                    </footer>
                 </div>
             );
         };
