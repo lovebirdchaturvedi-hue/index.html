@@ -9,7 +9,7 @@
     <style>
         body { font-family: 'Inter', sans-serif; scroll-behavior: smooth; }
         .hero-gradient { background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%); }
-        .card-hover { transition: all 0.3s ease; }
+        .card-hover { transition: all 0.3s ease; cursor: pointer; }
         .card-hover:hover { transform: translateY(-5px); box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1); }
         
         .chat-container {
@@ -44,6 +44,10 @@
         ::-webkit-scrollbar-track { background: #f1f1f1; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+        .terms-content h3 { font-weight: 700; margin-top: 1.5rem; margin-bottom: 0.5rem; color: #1e293b; font-size: 1.125rem; }
+        .terms-content p, .terms-content li { margin-bottom: 1rem; color: #475569; line-height: 1.6; }
+        .terms-content ul { list-style-type: disc; padding-left: 1.5rem; margin-bottom: 1rem; }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-900 flex flex-col min-h-screen">
@@ -64,11 +68,6 @@
                     <button onclick="showPage('contact')" class="px-4 py-2 bg-slate-900 text-white rounded-lg text-xs hover:bg-emerald-600 transition">Contact Us</button>
                     <button id="adminNavBtn" onclick="showPage('admin')" class="hidden flex items-center gap-1 text-emerald-700 font-bold px-3 py-1 bg-emerald-50 rounded-full border border-emerald-100">
                         Admin
-                    </button>
-                </div>
-                <div class="md:hidden">
-                    <button onclick="showPage('contact')" class="p-2 bg-slate-100 rounded-lg text-slate-600">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
                     </button>
                 </div>
             </div>
@@ -99,19 +98,32 @@
 
         <!-- Product Categories Preview -->
         <section class="max-w-7xl mx-auto px-4 py-20">
-            <h2 class="text-2xl font-bold text-slate-900 mb-8 text-center">Specialized Trading Categories</h2>
+            <h2 class="text-2xl font-bold text-slate-900 mb-2 text-center text-slate-800">Specialized Trading Categories</h2>
+            <p class="text-slate-500 text-sm text-center mb-12 uppercase tracking-wide">Click a category to place a <span class="text-emerald-600 font-bold">BULK Order</span></p>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                <div class="bg-white p-8 rounded-2xl border border-slate-200 card-hover">
-                    <h4 class="text-xl font-bold mb-3 text-emerald-600">Grains & Cereals</h4>
-                    <p class="text-slate-500 text-sm leading-relaxed">Wheat, corn, and rice. High-volume fulfillment with pan-regional shipping optimization.</p>
+                <div onclick="initiateBulkOrder('Grains & Cereals')" class="bg-white p-8 rounded-2xl border border-slate-200 card-hover group shadow-sm">
+                    <div class="flex justify-between items-start mb-4">
+                        <h4 class="text-xl font-bold text-slate-800 group-hover:text-emerald-600">Grains & Cereals</h4>
+                        <span class="text-[10px] bg-emerald-50 text-emerald-600 px-2 py-1 rounded font-bold uppercase">Bulk Order</span>
+                    </div>
+                    <p class="text-slate-500 text-sm leading-relaxed mb-4">Wheat, corn, and rice. High-volume fulfillment with pan-regional shipping optimization.</p>
+                    <span class="text-emerald-600 text-xs font-bold flex items-center gap-1">Request Quote →</span>
                 </div>
-                <div class="bg-white p-8 rounded-2xl border border-slate-200 card-hover">
-                    <h4 class="text-xl font-bold mb-3 text-emerald-600">Oilseeds</h4>
-                    <p class="text-slate-500 text-sm leading-relaxed">Soybeans, lentils, and sunflower seeds. Certified export documentation and quality control.</p>
+                <div onclick="initiateBulkOrder('Oilseeds')" class="bg-white p-8 rounded-2xl border border-slate-200 card-hover group shadow-sm">
+                    <div class="flex justify-between items-start mb-4">
+                        <h4 class="text-xl font-bold text-slate-800 group-hover:text-emerald-600">Oilseeds</h4>
+                        <span class="text-[10px] bg-emerald-50 text-emerald-600 px-2 py-1 rounded font-bold uppercase">Bulk Order</span>
+                    </div>
+                    <p class="text-slate-500 text-sm leading-relaxed mb-4">Soybeans, lentils, and sunflower seeds. Certified export documentation and quality control.</p>
+                    <span class="text-emerald-600 text-xs font-bold flex items-center gap-1">Request Quote →</span>
                 </div>
-                <div class="bg-white p-8 rounded-2xl border border-slate-200 card-hover">
-                    <h4 class="text-xl font-bold mb-3 text-emerald-600">Softs</h4>
-                    <p class="text-slate-500 text-sm leading-relaxed">Bulk sugar, coffee, and cocoa. Sourced from sustainable estates with full traceability.</p>
+                <div onclick="initiateBulkOrder('Softs (Sugar, Coffee)')" class="bg-white p-8 rounded-2xl border border-slate-200 card-hover group shadow-sm">
+                    <div class="flex justify-between items-start mb-4">
+                        <h4 class="text-xl font-bold text-slate-800 group-hover:text-emerald-600">Softs</h4>
+                        <span class="text-[10px] bg-emerald-50 text-emerald-600 px-2 py-1 rounded font-bold uppercase">Bulk Order</span>
+                    </div>
+                    <p class="text-slate-500 text-sm leading-relaxed mb-4">Bulk sugar, coffee, and cocoa. Sourced from sustainable estates with full traceability.</p>
+                    <span class="text-emerald-600 text-xs font-bold flex items-center gap-1">Request Quote →</span>
                 </div>
             </div>
         </section>
@@ -124,31 +136,6 @@
                 <h2 class="text-4xl font-extrabold text-slate-900">Get in Touch</h2>
                 <p class="text-slate-500 mt-3">Our trade experts are ready to assist with your global requirements.</p>
             </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
-                <div class="bg-white p-6 rounded-2xl border border-slate-200 text-center">
-                    <div class="w-12 h-12 bg-emerald-100 rounded-full flex items-center justify-center text-emerald-600 mx-auto mb-4">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
-                    </div>
-                    <h4 class="font-bold text-slate-800">Email Us</h4>
-                    <p class="text-sm text-slate-500">info@apdglobaltrade.com</p>
-                </div>
-                <div class="bg-white p-6 rounded-2xl border border-slate-200 text-center">
-                    <div class="w-12 h-12 bg-emerald-100 rounded-full flex items-center justify-center text-emerald-600 mx-auto mb-4">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path></svg>
-                    </div>
-                    <h4 class="font-bold text-slate-800">Call Us</h4>
-                    <p class="text-sm text-slate-500">+91-9266418868</p>
-                </div>
-                <div class="bg-white p-6 rounded-2xl border border-slate-200 text-center">
-                    <div class="w-12 h-12 bg-emerald-100 rounded-full flex items-center justify-center text-emerald-600 mx-auto mb-4">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-                    </div>
-                    <h4 class="font-bold text-slate-800">Location</h4>
-                    <p class="text-sm text-slate-500">Delhi, India</p>
-                </div>
-            </div>
-
             <div class="bg-white rounded-3xl shadow-xl border border-slate-200 p-8 md:p-12">
                 <form action="https://formspree.io/f/info@apdglobaltrade.com" method="POST" class="space-y-6">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -162,15 +149,6 @@
                         </div>
                     </div>
                     <div class="space-y-2">
-                        <label class="text-xs font-bold text-slate-500 uppercase tracking-widest">Subject</label>
-                        <select name="subject" class="w-full px-4 py-3 rounded-lg border border-slate-200 focus:ring-2 focus:ring-emerald-500 outline-none">
-                            <option>General Inquiry</option>
-                            <option>Partnership Proposal</option>
-                            <option>Technical Support</option>
-                            <option>Billing Question</option>
-                        </select>
-                    </div>
-                    <div class="space-y-2">
                         <label class="text-xs font-bold text-slate-500 uppercase tracking-widest">Your Message</label>
                         <textarea name="message" rows="5" required class="w-full px-4 py-3 rounded-lg border border-slate-200 focus:ring-2 focus:ring-emerald-500 outline-none"></textarea>
                     </div>
@@ -182,69 +160,46 @@
         </div>
     </main>
 
-    <!-- Page: Membership -->
-    <main id="page-membership" class="hidden page-content min-h-screen pb-20 bg-slate-50 flex-grow">
-        <div class="max-w-7xl mx-auto px-4 py-16">
-            <div class="text-center mb-16">
-                <h2 class="text-4xl font-bold text-slate-900">Membership Tiers</h2>
-                <p class="text-slate-500 mt-2">Unlock premium trade data and priority matching for your commodities.</p>
-            </div>
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
-                <!-- Tier logic same as previous -->
-                <div class="bg-white p-8 rounded-2xl border border-slate-200 flex flex-col">
-                    <h3 class="font-bold text-slate-400 uppercase text-xs mb-2">Starter</h3>
-                    <div class="text-3xl font-extrabold mb-1">Free</div>
-                    <div class="text-[10px] text-slate-400 font-bold mb-6">₹0 / Year</div>
-                    <ul class="text-sm space-y-4 text-slate-600 flex-grow mb-8">
-                        <li>• Basic Directory Listing</li>
-                        <li>• Standard RFQ Alerts</li>
-                    </ul>
-                    <button onclick="showPage('registry')" class="w-full py-3 bg-slate-100 text-slate-800 font-bold rounded-lg hover:bg-slate-200 transition">Get Started</button>
-                </div>
-                <div class="bg-white p-8 rounded-2xl border border-slate-200 shadow-sm">
-                    <h3 class="font-bold text-slate-500 uppercase text-xs mb-2">Silver</h3>
-                    <div class="text-3xl font-extrabold mb-1">$499</div>
-                    <div class="text-[10px] text-emerald-600 font-bold mb-6">₹41,500 / Year</div>
-                    <button onclick="showPage('registry')" class="w-full py-3 border border-emerald-600 text-emerald-600 font-bold rounded-lg hover:bg-emerald-50 transition">Select Silver</button>
-                </div>
-                <div class="bg-emerald-600 p-8 rounded-2xl flex flex-col shadow-xl transform scale-105">
-                    <h3 class="font-bold text-emerald-100 uppercase text-xs mb-2">Gold</h3>
-                    <div class="text-3xl font-extrabold text-white mb-1">$1,299</div>
-                    <div class="text-[10px] text-emerald-100 font-bold mb-6">₹1,08,500 / Year</div>
-                    <button onclick="showPage('registry')" class="w-full py-3 bg-white text-emerald-700 font-bold rounded-lg hover:bg-emerald-50 transition">Go Gold</button>
-                </div>
-                <div class="bg-slate-900 p-8 rounded-2xl flex flex-col shadow-sm text-white">
-                    <h3 class="font-bold text-slate-500 uppercase text-xs mb-2">Platinum</h3>
-                    <div class="text-3xl font-extrabold mb-1">$2,499</div>
-                    <div class="text-[10px] text-slate-500 font-bold mb-6">₹2,09,000 / Year</div>
-                    <button onclick="showPage('registry')" class="w-full py-3 bg-slate-800 text-white font-bold rounded-lg hover:bg-slate-700 transition">Contact Sales</button>
-                </div>
-            </div>
-        </div>
-    </main>
-
     <!-- Page: Buyer Hub (RFQ) -->
     <main id="page-buyer-portal" class="hidden page-content min-h-screen pb-20 bg-slate-50 flex-grow">
         <div class="max-w-4xl mx-auto px-4 py-12">
             <div class="bg-white rounded-3xl shadow-xl border border-slate-200 overflow-hidden">
                 <div class="bg-slate-900 p-8 text-white">
                     <h2 class="text-2xl font-bold">Request for Quotation (RFQ)</h2>
-                    <p class="opacity-70 text-sm">Submit requirements to our global supplier network.</p>
+                    <p class="opacity-70 text-sm">Directly inject leads into our trade pipeline. No passcode required.</p>
                 </div>
                 <form id="rfqForm" class="p-8 space-y-6">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <input type="text" id="rfqCompany" placeholder="Company Name" required class="w-full px-4 py-3 rounded-lg border border-slate-200 focus:ring-2 focus:ring-emerald-500 outline-none">
-                        <input type="text" id="rfqProduct" placeholder="Commodity Required" required class="w-full px-4 py-3 rounded-lg border border-slate-200 focus:ring-2 focus:ring-emerald-500 outline-none">
+                        <div class="space-y-1">
+                            <label class="text-[10px] font-bold text-slate-400 uppercase">Company Name</label>
+                            <input type="text" id="rfqCompany" required class="w-full px-4 py-3 rounded-lg border border-slate-200 focus:ring-2 focus:ring-emerald-500 outline-none">
+                        </div>
+                        <div class="space-y-1">
+                            <label class="text-[10px] font-bold text-slate-400 uppercase">Commodity Required</label>
+                            <input type="text" id="rfqProduct" required class="w-full px-4 py-3 rounded-lg border border-slate-200 focus:ring-2 focus:ring-emerald-500 outline-none">
+                        </div>
                     </div>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <input type="number" id="rfqVolume" placeholder="Target Volume (MT)" required class="w-full px-4 py-3 rounded-lg border border-slate-200 focus:ring-2 focus:ring-emerald-500 outline-none">
-                        <input type="text" id="rfqPort" placeholder="Destination Port" required class="w-full px-4 py-3 rounded-lg border border-slate-200 focus:ring-2 focus:ring-emerald-500 outline-none">
+                        <div class="space-y-1">
+                            <label class="text-[10px] font-bold text-slate-400 uppercase">Target Volume (MT)</label>
+                            <input type="number" id="rfqVolume" required class="w-full px-4 py-3 rounded-lg border border-slate-200 focus:ring-2 focus:ring-emerald-500 outline-none">
+                        </div>
+                        <div class="space-y-1">
+                            <label class="text-[10px] font-bold text-slate-400 uppercase">Destination Port</label>
+                            <input type="text" id="rfqPort" required class="w-full px-4 py-3 rounded-lg border border-slate-200 focus:ring-2 focus:ring-emerald-500 outline-none">
+                        </div>
                     </div>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <input type="email" id="rfqEmail" placeholder="Contact Email" required class="w-full px-4 py-3 rounded-lg border border-slate-200 focus:ring-2 focus:ring-emerald-500 outline-none">
-                        <input type="tel" id="rfqPhone" placeholder="Contact Number" required class="w-full px-4 py-3 rounded-lg border border-slate-200 focus:ring-2 focus:ring-emerald-500 outline-none">
+                        <div class="space-y-1">
+                            <label class="text-[10px] font-bold text-slate-400 uppercase">Contact Email</label>
+                            <input type="email" id="rfqEmail" required class="w-full px-4 py-3 rounded-lg border border-slate-200 focus:ring-2 focus:ring-emerald-500 outline-none">
+                        </div>
+                        <div class="space-y-1">
+                            <label class="text-[10px] font-bold text-slate-400 uppercase">Contact Phone</label>
+                            <input type="tel" id="rfqPhone" required class="w-full px-4 py-3 rounded-lg border border-slate-200 focus:ring-2 focus:ring-emerald-500 outline-none">
+                        </div>
                     </div>
-                    <button type="submit" class="w-full py-4 bg-emerald-600 text-white font-bold rounded-xl hover:bg-emerald-700 transition shadow-lg">Submit RFQ</button>
+                    <button type="submit" class="w-full py-4 bg-emerald-600 text-white font-bold rounded-xl hover:bg-emerald-700 transition shadow-lg">Submit Request</button>
                 </form>
             </div>
         </div>
@@ -260,14 +215,14 @@
                 </div>
                 <form id="supplierForm" class="p-8 space-y-6">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <input type="text" id="company" placeholder="Business Name" required class="w-full px-4 py-3 rounded-lg border border-slate-200 outline-none">
-                        <select id="category" class="w-full px-4 py-3 rounded-lg border border-slate-200 outline-none">
+                        <input type="text" id="supCompany" placeholder="Business Name" required class="w-full px-4 py-3 rounded-lg border border-slate-200 outline-none">
+                        <select id="supCategory" class="w-full px-4 py-3 rounded-lg border border-slate-200 outline-none">
                             <option>Agro Bulk</option>
                             <option>Agro Softs</option>
                             <option>Industrial Materials</option>
                         </select>
                     </div>
-                    <input type="email" id="email" placeholder="Compliance Email" required class="w-full px-4 py-3 rounded-lg border border-slate-200 outline-none">
+                    <input type="email" id="supEmail" placeholder="Compliance Email" required class="w-full px-4 py-3 rounded-lg border border-slate-200 outline-none">
                     <button type="submit" class="w-full py-4 bg-emerald-600 text-white font-bold rounded-xl shadow-lg">Complete Registration</button>
                     
                     <div class="text-center pt-8 border-t border-slate-100">
@@ -282,35 +237,61 @@
         </div>
     </main>
 
-    <!-- Page: Terms & Conditions -->
-    <main id="page-terms" class="hidden page-content min-h-screen bg-white flex-grow">
-        <div class="max-w-4xl mx-auto px-6 py-16">
-            <h1 class="text-4xl font-extrabold text-slate-900 mb-2">Terms & Conditions</h1>
-            <p class="text-emerald-600 font-bold mb-10 tracking-wide uppercase text-xs">Last Updated: JAN 2026!</p>
-            <div class="space-y-12 text-slate-700 leading-relaxed">
-                <section>
-                    <h2 class="text-xl font-bold text-slate-900 mb-4">1. Introduction</h2>
-                    <p>Welcome to <b>www.apdglobaltrade.com</b>. This platform is a B2B information and lead-generation marketplace. By accessing or using this website, you agree to comply with these Terms & Conditions.</p>
-                </section>
-                <section>
-                    <h2 class="text-xl font-bold text-slate-900 mb-4">2. Nature of Platform</h2>
-                    <p>We do not buy, sell, manufacture, store, inspect, or ship goods. We only provide a digital platform where buyers post requirements and suppliers respond.</p>
-                </section>
-                <section>
-                    <h2 class="text-xl font-bold text-slate-900 mb-4">3. User Eligibility</h2>
-                    <p>Users must be 18 years or older and provide accurate information during registration.</p>
-                </section>
-                <section>
-                    <h2 class="text-xl font-bold text-slate-900 mb-4">4. Responsibilities</h2>
-                    <p>Buyers and Suppliers independently verify all counterparts. Membership fees are non-refundable and grant access to features only.</p>
-                </section>
-                <section>
-                    <h2 class="text-xl font-bold text-slate-900 mb-4">10. Governing Law</h2>
-                    <p>These Terms are governed by the laws of <b>India</b>. Jurisdiction: Delhi, India.</p>
-                </section>
+    <!-- Page: Membership -->
+    <main id="page-membership" class="hidden page-content min-h-screen bg-slate-50 py-16">
+        <div class="max-w-7xl mx-auto px-4 text-center">
+            <h2 class="text-4xl font-extrabold text-slate-900 mb-4">Membership Plans</h2>
+            <p class="text-slate-500 max-w-2xl mx-auto mb-16">Unlock exclusive access to our global supplier database and trade fulfillment services.</p>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div class="bg-white p-8 rounded-2xl border border-slate-200 shadow-sm">
+                    <h3 class="text-xl font-bold mb-4">Silver Access</h3>
+                    <p class="text-3xl font-bold text-slate-900 mb-6">Contact Us</p>
+                    <ul class="text-sm text-slate-500 space-y-3 mb-8 text-left">
+                        <li class="flex items-center gap-2">✓ Verified RFQ Access</li>
+                        <li class="flex items-center gap-2">✓ Basic Trade Analytics</li>
+                        <li class="flex items-center gap-2">✓ Email Support</li>
+                    </ul>
+                    <button onclick="showPage('contact')" class="w-full py-3 bg-slate-100 text-slate-900 font-bold rounded-lg hover:bg-slate-200 transition">Inquire Now</button>
+                </div>
+                <div class="bg-emerald-600 p-8 rounded-2xl shadow-xl transform scale-105">
+                    <span class="bg-white/20 text-white text-[10px] px-2 py-1 rounded font-bold uppercase tracking-widest mb-4 inline-block">Recommended</span>
+                    <h3 class="text-xl font-bold mb-4 text-white">Gold Partner</h3>
+                    <p class="text-3xl font-bold text-white mb-6">Contact Us</p>
+                    <ul class="text-sm text-emerald-100 space-y-3 mb-8 text-left">
+                        <li class="flex items-center gap-2">✓ Global Supplier Introductions</li>
+                        <li class="flex items-center gap-2">✓ Priority Fulfillment</li>
+                        <li class="flex items-center gap-2">✓ Logistics Concierge</li>
+                    </ul>
+                    <button onclick="showPage('contact')" class="w-full py-3 bg-white text-emerald-600 font-bold rounded-lg hover:bg-emerald-50 transition">Inquire Now</button>
+                </div>
+                <div class="bg-white p-8 rounded-2xl border border-slate-200 shadow-sm">
+                    <h3 class="text-xl font-bold mb-4">Institutional</h3>
+                    <p class="text-3xl font-bold text-slate-900 mb-6">Contact Us</p>
+                    <ul class="text-sm text-slate-500 space-y-3 mb-8 text-left">
+                        <li class="flex items-center gap-2">✓ Full Trade Integration</li>
+                        <li class="flex items-center gap-2">✓ Dedicated Account Manager</li>
+                        <li class="flex items-center gap-2">✓ On-site Inspections</li>
+                    </ul>
+                    <button onclick="showPage('contact')" class="w-full py-3 bg-slate-100 text-slate-900 font-bold rounded-lg hover:bg-slate-200 transition">Inquire Now</button>
+                </div>
             </div>
-            <div class="mt-20 pt-8 border-t border-slate-100 text-center">
-                <button onclick="showPage('home')" class="px-8 py-3 bg-slate-900 text-white font-bold rounded-lg hover:bg-emerald-600 transition">Back to Home</button>
+        </div>
+    </main>
+
+    <!-- Page: Terms & Conditions -->
+    <main id="page-terms" class="hidden page-content min-h-screen bg-white py-16">
+        <div class="max-w-4xl mx-auto px-6 lg:px-8 terms-content">
+            <h1 class="text-3xl font-extrabold text-slate-900 mb-8 border-b pb-4">Terms & Conditions</h1>
+            <div class="space-y-2">
+                <h3>1. Introduction</h3>
+                <p>Welcome to www.apdglobaltrade.com (“Website”, “Platform”, “we”, “our”, or “us”). APD Global Trade operates as a B2B information and lead-generation marketplace that connects buyers and suppliers globally.</p>
+                <h3>2. Nature of the Platform</h3>
+                <p>APD Global Trade is a digital intermediary platform only. We do not buy or sell goods, manufacture, or ship goods. Transactions are direct between buyer and supplier.</p>
+                <h3>15. Governing Law</h3>
+                <p>These Terms & Conditions shall be governed by and construed in accordance with the laws of India. Any disputes shall be subject to the exclusive jurisdiction of the courts of Delhi, India.</p>
+                <h3>16. Contact Information</h3>
+                <p>For any questions, please contact support@apdglobaltrade.com.</p>
             </div>
         </div>
     </main>
@@ -322,47 +303,85 @@
                 <h2 class="text-3xl font-bold">Trade Command Center</h2>
                 <button onclick="logoutAdmin()" class="bg-slate-800 px-6 py-2 rounded-lg text-sm transition">Exit Portal</button>
             </div>
-            <div id="adminTableBody" class="text-slate-400 italic">Admin database loading...</div>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
+                <div>
+                    <h3 class="text-emerald-400 font-bold uppercase text-xs tracking-widest mb-6">Recent Buyer Leads (RFQs)</h3>
+                    <div class="bg-slate-800 rounded-2xl overflow-hidden border border-slate-700">
+                        <table class="w-full text-left text-sm">
+                            <thead class="bg-slate-700/50 text-slate-400">
+                                <tr><th class="p-4">Company</th><th class="p-4">Product</th><th class="p-4">Qty</th><th class="p-4"></th></tr>
+                            </thead>
+                            <tbody id="buyerTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+                <div>
+                    <h3 class="text-blue-400 font-bold uppercase text-xs tracking-widest mb-6">Supplier Applications</h3>
+                    <div class="bg-slate-800 rounded-2xl overflow-hidden border border-slate-700">
+                        <table class="w-full text-left text-sm">
+                            <thead class="bg-slate-700/50 text-slate-400">
+                                <tr><th class="p-4">Company</th><th class="p-4">Category</th><th class="p-4"></th></tr>
+                            </thead>
+                            <tbody id="supplierTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
         </div>
     </main>
 
-    <!-- Footer -->
-    <footer class="bg-white border-t border-slate-200 py-12 mt-auto">
-        <div class="max-w-7xl mx-auto px-4 grid grid-cols-1 md:grid-cols-4 gap-12">
-            <div class="md:col-span-2">
-                <div class="flex items-center gap-2 mb-6">
-                    <div class="w-6 h-6 bg-emerald-600 rounded flex items-center justify-center text-white text-xs font-bold">A</div>
-                    <span class="text-lg font-bold">APD Global Trade</span>
+    <!-- Footer with Updated Contact Information -->
+    <footer class="bg-slate-900 text-slate-400 py-20 border-t border-slate-800 mt-auto">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-12 mb-16">
+                <div class="col-span-2">
+                    <div class="flex items-center gap-2 mb-6">
+                        <div class="w-8 h-8 bg-emerald-600 rounded-lg flex items-center justify-center text-white font-bold">A</div>
+                        <span class="text-xl font-bold tracking-tight text-white">APD<span class="text-emerald-600">Global</span></span>
+                    </div>
+                    <p class="text-sm leading-relaxed max-w-sm mb-6">Specialized in global commodity sourcing and bulk logistics. Bridging markets with verified trade solutions and supply chain excellence.</p>
+                    <div class="space-y-3 text-sm">
+                        <div class="flex items-start gap-3">
+                            <span class="text-emerald-500 font-bold">HQ:</span>
+                            <span>APD Global Trade, Mayur Vihar Phase 1, Delhi-110091, India</span>
+                        </div>
+                        <div class="flex items-start gap-3">
+                            <span class="text-emerald-500 font-bold">Email:</span>
+                            <a href="mailto:info@apdglobaltrade.com" class="hover:text-white transition">info@apdglobaltrade.com</a>
+                        </div>
+                        <div class="flex items-start gap-3">
+                            <span class="text-emerald-500 font-bold">Tel (IN):</span>
+                            <a href="tel:+919266418868" class="hover:text-white transition">+91 9266418868</a>
+                        </div>
+                        <div class="flex items-start gap-3">
+                            <span class="text-emerald-500 font-bold">Tel (US):</span>
+                            <a href="tel:+12027801366" class="hover:text-white transition">+1 (202) 780-1366</a>
+                        </div>
+                    </div>
                 </div>
-                <p class="text-slate-500 text-sm max-w-sm">Specialized in bulk agricultural logistics and premium commodity fulfillment. Operating globally with localized expertise.</p>
-                <div class="mt-8 flex gap-4 text-xs font-bold uppercase tracking-widest text-slate-400">
-                    <button onclick="showPage('terms')" class="hover:text-emerald-600 transition">Terms & Conditions</button>
-                    <span>|</span>
-                    <button onclick="showPage('contact')" class="hover:text-emerald-600 transition">Contact Us</button>
+                <div>
+                    <h4 class="text-white font-bold mb-6 text-sm uppercase tracking-widest">Platform</h4>
+                    <ul class="space-y-4 text-sm">
+                        <li><button onclick="showPage('buyer-portal')" class="hover:text-emerald-500 transition">Buyer Hub</button></li>
+                        <li><button onclick="showPage('registry')" class="hover:text-emerald-500 transition">Supplier Registry</button></li>
+                        <li><button onclick="showPage('membership')" class="hover:text-emerald-500 transition">Membership</button></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="text-white font-bold mb-6 text-sm uppercase tracking-widest">Legal</h4>
+                    <ul class="space-y-4 text-sm">
+                        <li><button onclick="showPage('terms')" class="hover:text-emerald-500 transition">Terms & Conditions</button></li>
+                        <li><button onclick="showPage('contact')" class="hover:text-emerald-500 transition">Contact Support</button></li>
+                    </ul>
                 </div>
             </div>
-            <div>
-                <h5 class="font-bold text-slate-800 mb-4 uppercase text-xs tracking-widest">Direct Contact</h5>
-                <ul class="text-sm text-slate-600 space-y-4">
-                    <li>info@apdglobaltrade.com</li>
-                    <li>+91-9266418868</li>
-                </ul>
+            <div class="pt-12 border-t border-slate-800 text-center">
+                <p class="text-[10px] uppercase font-bold tracking-widest">© 2026 APD Global Trade | Established in New Delhi, India</p>
             </div>
-            <div>
-                <h5 class="font-bold text-slate-800 mb-4 uppercase text-xs tracking-widest">Platform</h5>
-                <ul class="text-sm text-slate-500 space-y-2">
-                    <li><button onclick="showPage('buyer-portal')" class="hover:text-emerald-600">Place RFQ</button></li>
-                    <li><button onclick="showPage('membership')" class="hover:text-emerald-600">Membership</button></li>
-                    <li><button onclick="showPage('registry')" class="hover:text-emerald-600">Suppliers</button></li>
-                </ul>
-            </div>
-        </div>
-        <div class="max-w-7xl mx-auto px-4 mt-12 pt-8 border-t border-slate-100 text-center">
-            <p class="text-[10px] text-slate-400 uppercase font-bold tracking-widest">© 2026 APD Global Trade | All Rights Reserved</p>
         </div>
     </footer>
 
-    <!-- WhatsApp Floating -->
+    <!-- Floating Chat -->
     <div class="chat-container">
         <a href="https://wa.me/919266418868" target="_blank" class="chat-btn whatsapp-bg">
             <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>
@@ -370,26 +389,101 @@
     </div>
 
     <script>
+        let leads = JSON.parse(localStorage.getItem('apd_leads')) || [];
+        let suppliers = JSON.parse(localStorage.getItem('apd_suppliers')) || [];
+
         function showPage(pageId) {
             document.querySelectorAll('.page-content').forEach(p => p.classList.add('hidden'));
             document.getElementById(`page-${pageId}`).classList.remove('hidden');
+            if (pageId === 'admin') renderAdmin();
             window.scrollTo(0, 0);
         }
 
-        // Placeholder logic for RFQ/Registry to maintain app structure
-        document.getElementById('rfqForm').addEventListener('submit', (e) => { e.preventDefault(); alert('RFQ Submitted!'); showPage('home'); });
-        document.getElementById('supplierForm').addEventListener('submit', (e) => { e.preventDefault(); alert('Supplier Application Submitted!'); showPage('home'); });
+        function initiateBulkOrder(commodity) {
+            showPage('buyer-portal');
+            document.getElementById('rfqProduct').value = commodity;
+            document.getElementById('rfqProduct').focus();
+        }
+
+        document.getElementById('rfqForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const newLead = {
+                id: Date.now(),
+                company: document.getElementById('rfqCompany').value,
+                product: document.getElementById('rfqProduct').value,
+                volume: document.getElementById('rfqVolume').value,
+                port: document.getElementById('rfqPort').value,
+                email: document.getElementById('rfqEmail').value,
+                phone: document.getElementById('rfqPhone').value,
+                date: new Date().toLocaleDateString()
+            };
+            leads.push(newLead);
+            localStorage.setItem('apd_leads', JSON.stringify(leads));
+            alert('Bulk Request Submitted!');
+            e.target.reset();
+            showPage('home');
+        });
+
+        document.getElementById('supplierForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const newSup = {
+                id: Date.now(),
+                company: document.getElementById('supCompany').value,
+                category: document.getElementById('supCategory').value,
+                email: document.getElementById('supEmail').value,
+                date: new Date().toLocaleDateString()
+            };
+            suppliers.push(newSup);
+            localStorage.setItem('apd_suppliers', JSON.stringify(suppliers));
+            alert('Supplier Registration Submitted.');
+            e.target.reset();
+            showPage('home');
+        });
 
         function handleAdminLogin() {
             if (document.getElementById('adminPin').value === '181818') {
                 document.getElementById('adminNavBtn').classList.remove('hidden');
                 showPage('admin');
-            } else { alert("Incorrect PIN."); }
+            } else { alert("Invalid Credentials."); }
         }
 
         function logoutAdmin() {
             document.getElementById('adminNavBtn').classList.add('hidden');
+            document.getElementById('adminPin').value = '';
             showPage('home');
+        }
+
+        function renderAdmin() {
+            const leadTbody = document.getElementById('buyerTableBody');
+            leadTbody.innerHTML = leads.length ? leads.map(l => `
+                <tr class="border-t border-slate-700/50 hover:bg-slate-800/50 transition">
+                    <td class="p-4"><div class="font-bold">${l.company}</div><div class="text-[10px] text-slate-500">${l.email}</div></td>
+                    <td class="p-4 text-slate-300">${l.product}</td>
+                    <td class="p-4 text-emerald-400 font-bold">${l.volume} MT</td>
+                    <td class="p-4 text-right"><button onclick="deleteLead(${l.id})" class="text-red-500 text-xs">Del</button></td>
+                </tr>
+            `).join('') : '<tr><td colspan="4" class="p-8 text-center text-slate-500">No active RFQs.</td></tr>';
+
+            const supTbody = document.getElementById('supplierTableBody');
+            supTbody.innerHTML = suppliers.length ? suppliers.map(s => `
+                <tr class="border-t border-slate-700/50 hover:bg-slate-800/50 transition">
+                    <td class="p-4"><div class="font-bold">${s.company}</div><div class="text-[10px] text-slate-500">${s.email}</div></td>
+                    <td class="p-4 text-slate-300">${s.category}</td>
+                    <td class="p-4 text-right"><button onclick="deleteSup(${s.id})" class="text-red-500 text-xs">Del</button></td>
+                </tr>
+            `).join('') : '<tr><td colspan="3" class="p-8 text-center text-slate-500">No supplier applications.</td></tr>';
+        }
+
+        function deleteLead(id) {
+            leads = leads.filter(l => l.id !== id);
+            localStorage.setItem('apd_leads', JSON.stringify(leads));
+            renderAdmin();
+        }
+
+        function deleteSup(id) {
+            suppliers = suppliers.filter(s => s.id !== id);
+            localStorage.setItem('apd_suppliers', JSON.stringify(suppliers));
+            renderAdmin();
         }
     </script>
 </body>
